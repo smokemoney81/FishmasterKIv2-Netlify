@@ -9,10 +9,10 @@ import { useState } from "react";
 import CatchLogModal from "@/components/catch-log-modal";
 import { useLocation } from "wouter";
 import type { FishingSpot, FishSpecies, Catch } from "@shared/schema";
-import startFishingIcon from "@assets/icon_3_1754053799805.png";
-import mapIcon from "@assets/icon_4_1754053799779.png";
-import weatherIcon from "@assets/icon_1_1754053799814.png";
-import kiIcon from "@assets/file_00000000017c6243b22d12cb5649f688_1754053799857.png";
+const startFishingIcon = "/icons/icon_3_1754053799805.png";
+const mapIcon = "/icons/icon_4_1754053799779.png";
+const weatherIcon = "/icons/icon_1_1754053799814.png";
+const kiIcon = "/icons/file_00000000017c6243b22d12cb5649f688_1754053799857.png";
 
 export default function Home() {
   const [, setLocation] = useLocation();
@@ -47,35 +47,35 @@ export default function Home() {
         <div className="grid grid-cols-4 gap-3">
           <Button
             variant="outline"
-            className="h-auto p-4 flex flex-col items-center space-y-2 bg-white hover:shadow-md transition-shadow"
+            className="h-auto p-4 flex flex-col items-center space-y-2 bg-gray-900/70 backdrop-blur-sm border border-cyan-500/30 hover:border-cyan-400 transition-all"
             onClick={() => setLocation("/identify")}
           >
             <img src={kiIcon} className="w-10 h-10 object-contain" alt="KI Buddy" />
-            <span className="text-xs font-medium text-slate-700">KI Buddy</span>
+            <span className="text-xs font-medium text-cyan-300">KI Buddy</span>
           </Button>
           <Button
             variant="outline"
-            className="h-auto p-4 flex flex-col items-center space-y-2 bg-white hover:shadow-md transition-shadow"
+            className="h-auto p-4 flex flex-col items-center space-y-2 bg-gray-900/70 backdrop-blur-sm border border-cyan-500/30 hover:border-cyan-400 transition-all"
             onClick={() => setLocation("/map")}
           >
             <img src={mapIcon} className="w-10 h-10 object-contain" alt="Karte" />
-            <span className="text-xs font-medium text-slate-700">Karte</span>
+            <span className="text-xs font-medium text-cyan-300">Karte</span>
           </Button>
           <Button
             variant="outline"
-            className="h-auto p-4 flex flex-col items-center space-y-2 bg-white hover:shadow-md transition-shadow"
+            className="h-auto p-4 flex flex-col items-center space-y-2 bg-gray-900/70 backdrop-blur-sm border border-cyan-500/30 hover:border-cyan-400 transition-all"
             onClick={() => setShowCatchModal(true)}
           >
             <img src={startFishingIcon} className="w-10 h-10 object-contain" alt="Start Fishing" />
-            <span className="text-xs font-medium text-slate-700">Start Fishing</span>
+            <span className="text-xs font-medium text-cyan-300">Start Fishing</span>
           </Button>
           <Button
             variant="outline"
-            className="h-auto p-4 flex flex-col items-center space-y-2 bg-white hover:shadow-md transition-shadow"
+            className="h-auto p-4 flex flex-col items-center space-y-2 bg-gray-900/70 backdrop-blur-sm border border-cyan-500/30 hover:border-cyan-400 transition-all"
             onClick={() => setLocation("/tips")}
           >
             <img src={weatherIcon} className="w-10 h-10 object-contain" alt="Wetter" />
-            <span className="text-xs font-medium text-slate-700">Wetter</span>
+            <span className="text-xs font-medium text-cyan-300">Wetter</span>
           </Button>
         </div>
       </section>
@@ -83,14 +83,14 @@ export default function Home() {
       {/* Featured Locations */}
       <section className="px-4 py-6">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-slate-800">Beliebte Angelplätze</h3>
-          <Button variant="link" className="text-blue-500 text-sm font-medium p-0" onClick={() => setLocation("/map")}>
+          <h3 className="text-lg font-semibold text-gray-100">Beliebte Angelplätze</h3>
+          <Button variant="link" className="text-cyan-400 text-sm font-medium p-0 hover:text-cyan-300" onClick={() => setLocation("/map")}>
             Alle anzeigen
           </Button>
         </div>
         <div className="space-y-3">
           {featuredSpots.map((spot) => (
-            <Card key={spot.id} className="overflow-hidden">
+            <Card key={spot.id} className="overflow-hidden bg-gray-900/70 backdrop-blur-sm border border-cyan-500/30">
               <div className="relative h-32">
                 <img 
                   src={spot.imageUrl || "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=300"} 
@@ -102,14 +102,14 @@ export default function Home() {
                 </div>
               </div>
               <div className="p-4">
-                <h4 className="font-semibold text-slate-800 mb-1">{spot.name}</h4>
-                <p className="text-sm text-slate-600 mb-2">{spot.description}</p>
+                <h4 className="font-semibold text-gray-100 mb-1">{spot.name}</h4>
+                <p className="text-sm text-gray-400 mb-2">{spot.description}</p>
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-slate-500">
+                  <span className="text-gray-500">
                     <MapPin className="w-3 h-3 inline mr-1" />
                     2.3 mi
                   </span>
-                  <span className="text-orange-500 font-medium">{spot.recentCatches} Fänge</span>
+                  <span className="text-orange-400 font-medium">{spot.recentCatches} Fänge</span>
                 </div>
               </div>
             </Card>
@@ -120,14 +120,14 @@ export default function Home() {
       {/* Species Spotlight */}
       <section className="px-4 py-6">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-slate-800">Fischarten-Guide</h3>
-          <Button variant="link" className="text-blue-500 text-sm font-medium p-0" onClick={() => setLocation("/species")}>
+          <h3 className="text-lg font-semibold text-gray-100">Fischarten-Guide</h3>
+          <Button variant="link" className="text-cyan-400 text-sm font-medium p-0 hover:text-cyan-300" onClick={() => setLocation("/species")}>
             Alle durchsuchen
           </Button>
         </div>
         <div className="grid grid-cols-2 gap-3">
           {featuredSpecies.map((species) => (
-            <Card key={species.id} className="overflow-hidden">
+            <Card key={species.id} className="overflow-hidden bg-gray-900/70 backdrop-blur-sm border border-cyan-500/30">
               <div className="relative h-24">
                 <img 
                   src={species.imageUrl || "https://images.unsplash.com/photo-1544551763-46a013bb70d5?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=200"} 
@@ -136,12 +136,12 @@ export default function Home() {
                 />
               </div>
               <div className="p-3">
-                <h4 className="font-semibold text-slate-800 text-sm mb-1">{species.name}</h4>
-                <p className="text-xs text-slate-600 mb-2">{species.habitat}</p>
+                <h4 className="font-semibold text-gray-100 text-sm mb-1">{species.name}</h4>
+                <p className="text-xs text-gray-400 mb-2">{species.habitat}</p>
                 <div className={`text-xs font-medium ${
-                  species.difficulty === "Beginner Friendly" ? "text-green-500" :
-                  species.difficulty === "Intermediate" ? "text-orange-500" :
-                  "text-red-500"
+                  species.difficulty === "Beginner Friendly" ? "text-green-400" :
+                  species.difficulty === "Intermediate" ? "text-orange-400" :
+                  "text-red-400"
                 }`}>
                   {species.difficulty}
                 </div>
@@ -154,15 +154,15 @@ export default function Home() {
       {/* Recent Community Catches */}
       <section className="px-4 py-6">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-slate-800">Community Catches</h3>
-          <Button variant="link" className="text-blue-500 text-sm font-medium p-0">
+          <h3 className="text-lg font-semibold text-gray-100">Community Catches</h3>
+          <Button variant="link" className="text-cyan-400 text-sm font-medium p-0 hover:text-cyan-300">
             See More
           </Button>
         </div>
         <div className="space-y-3">
           {recentCatches.length === 0 ? (
-            <Card className="p-6 text-center">
-              <p className="text-slate-500">No catches logged yet. Be the first to share your catch!</p>
+            <Card className="p-6 text-center bg-gray-900/70 backdrop-blur-sm border border-cyan-500/30">
+              <p className="text-gray-400">No catches logged yet. Be the first to share your catch!</p>
             </Card>
           ) : (
             recentCatches.map((catchData) => (

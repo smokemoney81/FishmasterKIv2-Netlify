@@ -14,7 +14,7 @@ import BottomNavigation from "@/components/layout/bottom-navigation";
 
 function Router() {
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-gray-900" style={{backgroundImage: 'url(/icons/background.jpg)', backgroundSize: 'cover', backgroundPosition: 'center', backgroundAttachment: 'fixed'}}>
       <Switch>
         <Route path="/" component={Home} />
         <Route path="/map" component={Map} />

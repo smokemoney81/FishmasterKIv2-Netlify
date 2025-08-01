@@ -15,8 +15,8 @@ export default function WeatherWidget() {
   if (!weather) {
     return (
       <section className="px-4 py-4">
-        <Card className="p-4 animate-pulse">
-          <div className="h-20 bg-gray-200 rounded"></div>
+        <Card className="p-4 animate-pulse bg-gray-900/70 backdrop-blur-sm border border-cyan-500/30">
+          <div className="h-20 bg-gray-800 rounded"></div>
         </Card>
       </section>
     );
@@ -24,20 +24,20 @@ export default function WeatherWidget() {
 
   const getFishingScoreColor = (score: string) => {
     switch (score.toLowerCase()) {
-      case "excellent": return "text-green-500";
-      case "good": return "text-blue-500";
-      case "fair": return "text-yellow-500";
-      case "poor": return "text-red-500";
-      default: return "text-gray-500";
+      case "excellent": return "text-green-400";
+      case "good": return "text-blue-400";
+      case "fair": return "text-yellow-400";
+      case "poor": return "text-red-400";
+      default: return "text-gray-400";
     }
   };
 
   return (
     <section className="px-4 py-4">
-      <Card className="p-4">
+      <Card className="p-4 bg-gray-900/70 backdrop-blur-sm border border-cyan-500/30">
         <div className="flex items-center justify-between mb-3">
-          <h3 className="font-semibold text-slate-800">Today's Fishing Forecast</h3>
-          <span className="text-xs text-slate-500">{weather.location}</span>
+          <h3 className="font-semibold text-gray-100">Today's Fishing Forecast</h3>
+          <span className="text-xs text-gray-400">{weather.location}</span>
         </div>
         
         <div className="flex items-center justify-between">
@@ -46,19 +46,19 @@ export default function WeatherWidget() {
               <Sun className="w-6 h-6 text-white" />
             </div>
             <div>
-              <div className="text-2xl font-bold text-slate-800">{weather.temperature}°F</div>
-              <div className="text-sm text-slate-500">{weather.condition}</div>
+              <div className="text-2xl font-bold text-gray-100">{weather.temperature}°F</div>
+              <div className="text-sm text-gray-400">{weather.condition}</div>
             </div>
           </div>
           <div className="text-right">
             <div className={`text-lg font-semibold ${getFishingScoreColor(weather.fishingScore)}`}>
               {weather.fishingScore}
             </div>
-            <div className="text-xs text-slate-500">Fishing Conditions</div>
+            <div className="text-xs text-gray-400">Fishing Conditions</div>
           </div>
         </div>
         
-        <div className="mt-4 flex items-center justify-between text-sm text-slate-600">
+        <div className="mt-4 flex items-center justify-between text-sm text-gray-400">
           <span className="flex items-center">
             <Wind className="w-4 h-4 mr-1" />
             {weather.windSpeed} mph

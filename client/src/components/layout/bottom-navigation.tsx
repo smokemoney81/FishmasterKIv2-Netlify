@@ -3,9 +3,9 @@ import { cn } from "@/lib/utils";
 import { Plus, User } from "lucide-react";
 import { useState } from "react";
 import CatchLogModal from "@/components/catch-log-modal";
-import homeIcon from "@assets/file_00000000f6186246a8136bebf875e096_1754053799824.png";
-import mapIcon from "@assets/icon_4_1754053799779.png";
-import fangbuchIcon from "@assets/icon_2_1754053799796.png";
+const homeIcon = "/icons/file_00000000f6186246a8136bebf875e096_1754053799824.png";
+const mapIcon = "/icons/icon_4_1754053799779.png";
+const fangbuchIcon = "/icons/icon_2_1754053799796.png";
 
 export default function BottomNavigation() {
   const [location] = useLocation();
@@ -15,12 +15,12 @@ export default function BottomNavigation() {
 
   return (
     <>
-      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 px-4 py-2 z-40">
+      <nav className="fixed bottom-0 left-0 right-0 bg-gray-900/90 backdrop-blur-sm border-t border-cyan-500/30 px-4 py-2 z-40">
         <div className="flex items-center justify-around">
           <Link href="/">
             <button className={cn(
               "flex flex-col items-center space-y-1 transition-colors",
-              isActive("/") ? "text-blue-500" : "text-slate-500 hover:text-blue-500"
+              isActive("/") ? "text-cyan-400" : "text-gray-400 hover:text-cyan-400"
             )}>
               <img src={homeIcon} className="w-5 h-5 object-contain" alt="Home" />
               <span className="text-xs font-medium">Home</span>
@@ -30,7 +30,7 @@ export default function BottomNavigation() {
           <Link href="/map">
             <button className={cn(
               "flex flex-col items-center space-y-1 transition-colors",
-              isActive("/map") ? "text-blue-500" : "text-slate-500 hover:text-blue-500"
+              isActive("/map") ? "text-cyan-400" : "text-gray-400 hover:text-cyan-400"
             )}>
               <img src={mapIcon} className="w-5 h-5 object-contain" alt="Karte" />
               <span className="text-xs font-medium">Karte</span>
@@ -48,7 +48,7 @@ export default function BottomNavigation() {
           <Link href="/species">
             <button className={cn(
               "flex flex-col items-center space-y-1 transition-colors",
-              isActive("/species") ? "text-blue-500" : "text-slate-500 hover:text-blue-500"
+              isActive("/species") ? "text-cyan-400" : "text-gray-400 hover:text-cyan-400"
             )}>
               <img src={fangbuchIcon} className="w-5 h-5 object-contain" alt="Fangbuch" />
               <span className="text-xs font-medium">Fangbuch</span>
@@ -58,7 +58,7 @@ export default function BottomNavigation() {
           <Link href="/profile">
             <button className={cn(
               "flex flex-col items-center space-y-1 transition-colors",
-              isActive("/profile") ? "text-blue-500" : "text-slate-500 hover:text-blue-500"
+              isActive("/profile") ? "text-cyan-400" : "text-gray-400 hover:text-cyan-400"
             )}>
               <User className="w-5 h-5" />
               <span className="text-xs font-medium">Profile</span>
