@@ -4,6 +4,7 @@ import { Plus, User } from "lucide-react";
 import { useState } from "react";
 import CatchLogModal from "@/components/catch-log-modal";
 import { useLanguage } from "@/contexts/language-context";
+import { useScrollHide } from "@/hooks/use-scroll-hide";
 const homeIcon = "/icons/file_00000000f6186246a8136bebf875e096_1754053799824.png";
 const mapIcon = "/icons/icon_4_1754053799779.png";
 const fangbuchIcon = "/icons/icon_2_1754053799796.png";
@@ -12,12 +13,15 @@ export default function BottomNavigation() {
   const [location] = useLocation();
   const [showCatchModal, setShowCatchModal] = useState(false);
   const { t } = useLanguage();
+  const isVisible = useScrollHide(50);
 
   const isActive = (path: string) => location === path;
 
   return (
     <>
-      <nav className="fixed bottom-0 left-0 right-0 bg-gray-900/50 backdrop-blur-sm border-t border-cyan-500/20 px-4 py-2 z-40">
+      <nav className={`fixed bottom-0 left-0 right-0 bg-gray-900/50 backdrop-blur-sm border-t border-cyan-500/20 px-4 py-2 z-40 transition-transform duration-300 ${
+        isVisible ? 'translate-y-0' : 'translate-y-full'
+      }`}>
         <div className="flex items-center justify-around">
           <Link href="/home">
             <button className={cn(

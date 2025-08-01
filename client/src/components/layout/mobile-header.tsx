@@ -2,6 +2,7 @@ import { Search, Bell, User, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLocation } from "wouter";
 import LanguageSwitcher from "@/components/language-switcher";
+import { useScrollHide } from "@/hooks/use-scroll-hide";
 const logoImage = "/icons/file_0000000014b4620aa3c30bfbe711a238_1754053799846.png";
 
 interface MobileHeaderProps {
@@ -11,9 +12,12 @@ interface MobileHeaderProps {
 
 export default function MobileHeader({ title, showBack = false }: MobileHeaderProps) {
   const [, setLocation] = useLocation();
+  const isVisible = useScrollHide(50);
 
   return (
-    <header className="bg-gray-900/50 backdrop-blur-sm border-b border-cyan-500/20 sticky top-0 z-50">
+    <header className={`bg-gray-900/50 backdrop-blur-sm border-b border-cyan-500/20 sticky top-0 z-50 transition-transform duration-300 ${
+      isVisible ? 'translate-y-0' : '-translate-y-full'
+    }`}>
       <div className="flex items-center justify-between px-4 py-3">
         <div className="flex items-center space-x-3">
           {showBack ? (
