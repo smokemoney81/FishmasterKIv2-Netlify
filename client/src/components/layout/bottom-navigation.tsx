@@ -17,10 +17,10 @@ export default function BottomNavigation() {
     <>
       <nav className="fixed bottom-0 left-0 right-0 bg-gray-900/90 backdrop-blur-sm border-t border-cyan-500/30 px-4 py-2 z-40">
         <div className="flex items-center justify-around">
-          <Link href="/">
+          <Link href="/home">
             <button className={cn(
               "flex flex-col items-center space-y-1 transition-colors",
-              isActive("/") ? "text-cyan-400" : "text-gray-400 hover:text-cyan-400"
+              isActive("/home") ? "text-cyan-400" : "text-gray-400 hover:text-cyan-400"
             )}>
               <img src={homeIcon} className="w-5 h-5 object-contain" alt="Home" />
               <span className="text-xs font-medium">Home</span>
