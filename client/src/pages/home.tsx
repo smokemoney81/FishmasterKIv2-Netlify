@@ -10,6 +10,7 @@ import CatchLogModal from "@/components/catch-log-modal";
 import { useLocation } from "wouter";
 import type { FishingSpot, FishSpecies, Catch } from "@shared/schema";
 import { useLanguage } from "@/contexts/language-context";
+import fishMasterBackground from "@assets/file_000000001858620a97cb33f0ecc79a29_1754058073370.png";
 const startFishingIcon = "/icons/icon_3_1754053799805.png";
 const mapIcon = "/icons/icon_4_1754053799779.png";
 const weatherIcon = "/icons/icon_1_1754053799814.png";

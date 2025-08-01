@@ -20,7 +20,7 @@ function Router() {
     <Switch>
       <Route path="/" component={Splash} />
       <Route path="/home">
-        <div className="min-h-screen bg-gray-900" style={{backgroundImage: 'url(/icons/background.jpg)', backgroundSize: 'cover', backgroundPosition: 'center', backgroundAttachment: 'fixed'}}>
+        <div className="min-h-screen bg-gray-900" style={{backgroundImage: 'url(/attached_assets/file_000000001858620a97cb33f0ecc79a29_1754058073370.png)', backgroundSize: 'cover', backgroundPosition: 'center', backgroundAttachment: 'fixed'}}>
           <Home />
           <BottomNavigation />
         </div>
