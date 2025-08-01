@@ -1,6 +1,6 @@
 # Overview
 
-FishMasterKI is a comprehensive fishing companion application that helps anglers discover fishing spots, identify fish species, log catches, and access fishing tips. The application features a mobile-first design with an interactive interface for fishing enthusiasts to track their fishing activities and improve their skills.
+FishMasterKI is a comprehensive fishing companion application that helps anglers discover fishing spots, identify fish species, log catches, and access fishing tips. The application features a mobile-first design with an interactive interface for fishing enthusiasts to track their fishing activities and improve their skills. The app now includes a stunning splash screen with animated elements that matches the user's design vision, featuring the FishMasterKI branding with "ARTIFICIAL INTELLIGENCE" tagline and animated fish elements.
 
 # User Preferences
 
@@ -27,7 +27,10 @@ The application integrates with Google Cloud Storage for file uploads using Uppy
 The application includes a basic user system with profile management. The object storage system implements a flexible ACL framework supporting various access group types (user lists, email domains, group membership, subscriptions) with configurable permissions.
 
 ## Mobile-First Design
-The frontend is designed with a mobile-first approach, featuring a bottom navigation bar, responsive layouts, and touch-friendly interactions. The UI adapts seamlessly between mobile and desktop viewports.
+The frontend is designed with a mobile-first approach, featuring a bottom navigation bar, responsive layouts, and touch-friendly interactions. The UI adapts seamlessly between mobile and desktop viewports. The app includes a splash screen with animated fish elements and gradient backgrounds that serves as the entry point before accessing the main application.
+
+## User Interface & Theming
+The application features a dark theme with a custom underwater aesthetic, using cyan and blue accent colors throughout. The splash screen includes animated elements and a gradient background that matches the user's design vision. Custom icons provided by the user are integrated throughout the application interface.
 
 # External Dependencies
 
