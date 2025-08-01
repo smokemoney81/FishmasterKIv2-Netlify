@@ -1,4 +1,4 @@
-import { type User, type InsertUser, type FishSpecies, type InsertFishSpecies, type FishingSpot, type InsertFishingSpot, type Catch, type InsertCatch, type Tip, type InsertTip, type Weather, type InsertWeather } from "@shared/schema";
+import { type User, type InsertUser, type FishSpecies, type InsertFishSpecies, type FishingSpot, type InsertFishingSpot, type Catch, type InsertCatch, type Tip, type InsertTip, type Weather, type InsertWeather, type LogbookEntry, type InsertLogbookEntry } from "@shared/schema";
 import { randomUUID } from "crypto";
 
 export interface IStorage {
@@ -34,6 +34,14 @@ export interface IStorage {
   // Weather
   getWeatherByLocation(latitude: number, longitude: number): Promise<Weather | undefined>;
   createWeather(weather: InsertWeather): Promise<Weather>;
+
+  // Logbook
+  getLogbookEntries(userId?: string): Promise<LogbookEntry[]>;
+  getLogbookEntryById(id: string): Promise<LogbookEntry | undefined>;
+  createLogbookEntry(entry: InsertLogbookEntry): Promise<LogbookEntry>;
+  updateLogbookEntry(id: string, updates: Partial<LogbookEntry>): Promise<LogbookEntry | undefined>;
+  deleteLogbookEntry(id: string): Promise<boolean>;
+  getUserStats(userId: string): Promise<{ totalPoints: number; totalCatches: number; rank: string; achievements: string[] }>;
 }
 
 export class MemStorage implements IStorage {
@@ -43,6 +51,7 @@ export class MemStorage implements IStorage {
   private catches: Map<string, Catch> = new Map();
   private tips: Map<string, Tip> = new Map();
   private weather: Map<string, Weather> = new Map();
+  private logbook: Map<string, LogbookEntry> = new Map();
 
   constructor() {
     this.initializeMockData();
@@ -313,6 +322,68 @@ export class MemStorage implements IStorage {
     };
     this.weather.set(id, weather);
     return weather;
+  }
+
+  // Logbook
+  async getLogbookEntries(userId?: string): Promise<LogbookEntry[]> {
+    const entries = Array.from(this.logbook.values());
+    if (userId) {
+      return entries.filter(entry => entry.userId === userId);
+    }
+    return entries;
+  }
+
+  async getLogbookEntryById(id: string): Promise<LogbookEntry | undefined> {
+    return this.logbook.get(id);
+  }
+
+  async createLogbookEntry(insertEntry: InsertLogbookEntry): Promise<LogbookEntry> {
+    const id = randomUUID();
+    const entry: LogbookEntry = { 
+      ...insertEntry, 
+      id,
+      createdAt: new Date()
+    };
+    this.logbook.set(id, entry);
+    return entry;
+  }
+
+  async updateLogbookEntry(id: string, updates: Partial<LogbookEntry>): Promise<LogbookEntry | undefined> {
+    const entry = this.logbook.get(id);
+    if (!entry) return undefined;
+    const updatedEntry = { ...entry, ...updates };
+    this.logbook.set(id, updatedEntry);
+    return updatedEntry;
+  }
+
+  async deleteLogbookEntry(id: string): Promise<boolean> {
+    return this.logbook.delete(id);
+  }
+
+  async getUserStats(userId: string): Promise<{ totalPoints: number; totalCatches: number; rank: string; achievements: string[] }> {
+    const userEntries = await this.getLogbookEntries(userId);
+    const totalPoints = userEntries.reduce((sum, entry) => sum + entry.points, 0);
+    const totalCatches = userEntries.length;
+    
+    // Calculate rank based on points
+    let rank = "Anfänger";
+    if (totalPoints > 1000) rank = "Pro-Angler";
+    if (totalPoints > 2000) rank = "Legende";
+    if (totalPoints > 4000) rank = "Fischgott";
+    
+    // Calculate achievements
+    const achievements: string[] = [];
+    if (userEntries.some(entry => entry.fish.toLowerCase().includes("hecht"))) {
+      achievements.push("Hecht-Killer");
+    }
+    if (userEntries.filter(entry => entry.weight >= 3).length >= 3) {
+      achievements.push("3kg Club");
+    }
+    if (totalCatches >= 5) {
+      achievements.push("Fangmeister");
+    }
+    
+    return { totalPoints, totalCatches, rank, achievements };
   }
 }
 

@@ -12,6 +12,7 @@ import Identify from "@/pages/identify";
 import Species from "@/pages/species";
 import Tips from "@/pages/tips";
 import Profile from "@/pages/profile";
+import Logbook from "@/pages/logbook";
 import BottomNavigation from "@/components/layout/bottom-navigation";
 
 function Router() {
@@ -39,6 +40,12 @@ function Router() {
       <Route path="/species">
         <div className="min-h-screen bg-gray-900" style={{backgroundImage: 'url(/icons/background.jpg)', backgroundSize: 'cover', backgroundPosition: 'center', backgroundAttachment: 'fixed'}}>
           <Species />
+          <BottomNavigation />
+        </div>
+      </Route>
+      <Route path="/logbook">
+        <div className="min-h-screen bg-gray-900" style={{backgroundImage: 'url(/icons/background.jpg)', backgroundSize: 'cover', backgroundPosition: 'center', backgroundAttachment: 'fixed'}}>
+          <Logbook />
           <BottomNavigation />
         </div>
       </Route>

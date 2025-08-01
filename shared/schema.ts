@@ -87,6 +87,18 @@ export const weather = pgTable("weather", {
   timestamp: timestamp("timestamp").defaultNow(),
 });
 
+export const logbook = pgTable("logbook", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id),
+  fish: text("fish").notNull(),
+  weight: real("weight").notNull(),
+  spot: text("spot").notNull(),
+  gear: text("gear").notNull(),
+  date: text("date").notNull(),
+  points: real("points").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
@@ -118,6 +130,11 @@ export const insertWeatherSchema = createInsertSchema(weather).omit({
   timestamp: true,
 });
 
+export const insertLogbookSchema = createInsertSchema(logbook).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Types
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -136,3 +153,6 @@ export type InsertTip = z.infer<typeof insertTipSchema>;
 
 export type Weather = typeof weather.$inferSelect;
 export type InsertWeather = z.infer<typeof insertWeatherSchema>;
+
+export type LogbookEntry = typeof logbook.$inferSelect;
+export type InsertLogbookEntry = z.infer<typeof insertLogbookSchema>;

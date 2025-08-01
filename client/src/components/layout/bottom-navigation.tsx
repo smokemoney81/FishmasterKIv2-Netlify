@@ -47,10 +47,10 @@ export default function BottomNavigation() {
             <span className="text-xs font-medium">{t("nav.log")}</span>
           </button>
           
-          <Link href="/species">
+          <Link href="/logbook">
             <button className={cn(
               "flex flex-col items-center space-y-1 transition-colors",
-              isActive("/species") ? "text-cyan-400" : "text-gray-400 hover:text-cyan-400"
+              isActive("/logbook") ? "text-cyan-400" : "text-gray-400 hover:text-cyan-400"
             )}>
               <img src={fangbuchIcon} className="w-5 h-5 object-contain" alt={t("nav.species")} />
               <span className="text-xs font-medium">{t("nav.species")}</span>

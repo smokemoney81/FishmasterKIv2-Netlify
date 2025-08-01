@@ -96,6 +96,28 @@ const translations = {
     "identify.uploadPrompt": "Laden Sie ein Foto hoch, um den Fisch zu identifizieren",
     "identify.analyzing": "Analysiere Bild...",
     "identify.result": "Identifizierter Fisch",
+    
+    // Logbook Page
+    "logbook.title": "FishMasterKI Fangbuch",
+    "logbook.fishType": "Fischart (z.B. Hecht)",
+    "logbook.weight": "Gewicht in kg (z.B. 3.4)",
+    "logbook.spot": "Angelplatz",
+    "logbook.gear": "Ausrüstung (Rute, Köder, Schnur...)",
+    "logbook.save": "Fang speichern",
+    "logbook.saveSuccess": "Fang gespeichert!",
+    "logbook.saveSuccessDesc": "Dein Fang wurde erfolgreich im Fangbuch eingetragen.",
+    "logbook.saveError": "Fehler beim Speichern",
+    "logbook.saveErrorDesc": "Der Fang konnte nicht gespeichert werden. Bitte versuche es erneut.",
+    "logbook.validationError": "Ungültige Eingabe",
+    "logbook.validationErrorDesc": "Bitte fülle alle Felder korrekt aus!",
+    "logbook.yourRanking": "Dein Ranking",
+    "logbook.points": "Punkte",
+    "logbook.rank": "Rang",
+    "logbook.achievements": "Erfolge",
+    "logbook.yourCatches": "Deine bisherigen Fänge",
+    "logbook.spotLabel": "Spot",
+    "logbook.gearLabel": "Gear",
+    "logbook.noCatches": "Noch keine Fänge eingetragen",
   },
   en: {
     // Splash Page
@@ -184,6 +206,28 @@ const translations = {
     "identify.uploadPrompt": "Upload a photo to identify the fish",
     "identify.analyzing": "Analyzing image...",
     "identify.result": "Identified Fish",
+    
+    // Logbook Page
+    "logbook.title": "FishMasterKI Logbook",
+    "logbook.fishType": "Fish Type (e.g. Pike)",
+    "logbook.weight": "Weight in kg (e.g. 3.4)",
+    "logbook.spot": "Fishing Spot",
+    "logbook.gear": "Gear (Rod, Bait, Line...)",
+    "logbook.save": "Save Catch",
+    "logbook.saveSuccess": "Catch Saved!",
+    "logbook.saveSuccessDesc": "Your catch has been successfully recorded in the logbook.",
+    "logbook.saveError": "Save Error",
+    "logbook.saveErrorDesc": "Could not save the catch. Please try again.",
+    "logbook.validationError": "Invalid Input",
+    "logbook.validationErrorDesc": "Please fill in all fields correctly!",
+    "logbook.yourRanking": "Your Ranking",
+    "logbook.points": "Points",
+    "logbook.rank": "Rank",
+    "logbook.achievements": "Achievements",
+    "logbook.yourCatches": "Your Previous Catches",
+    "logbook.spotLabel": "Spot",
+    "logbook.gearLabel": "Gear",
+    "logbook.noCatches": "No catches recorded yet",
   }
 };
 

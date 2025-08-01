@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { ObjectStorageService } from "./objectStorage";
-import { insertCatchSchema, insertUserSchema } from "@shared/schema";
+import { insertCatchSchema, insertUserSchema, insertLogbookSchema } from "@shared/schema";
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -160,6 +160,75 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(weather);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch weather data" });
+    }
+  });
+
+  // Logbook
+  app.get("/api/logbook", async (req, res) => {
+    try {
+      const userId = req.query.userId as string;
+      const entries = await storage.getLogbookEntries(userId);
+      res.json(entries);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch logbook entries" });
+    }
+  });
+
+  app.get("/api/logbook/:id", async (req, res) => {
+    try {
+      const entry = await storage.getLogbookEntryById(req.params.id);
+      if (!entry) {
+        return res.status(404).json({ error: "Logbook entry not found" });
+      }
+      res.json(entry);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch logbook entry" });
+    }
+  });
+
+  app.post("/api/logbook", async (req, res) => {
+    try {
+      const entryData = insertLogbookSchema.parse(req.body);
+      const newEntry = await storage.createLogbookEntry(entryData);
+      res.status(201).json(newEntry);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: "Invalid logbook data", details: error.errors });
+      }
+      res.status(500).json({ error: "Failed to create logbook entry" });
+    }
+  });
+
+  app.patch("/api/logbook/:id", async (req, res) => {
+    try {
+      const entry = await storage.updateLogbookEntry(req.params.id, req.body);
+      if (!entry) {
+        return res.status(404).json({ error: "Logbook entry not found" });
+      }
+      res.json(entry);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to update logbook entry" });
+    }
+  });
+
+  app.delete("/api/logbook/:id", async (req, res) => {
+    try {
+      const deleted = await storage.deleteLogbookEntry(req.params.id);
+      if (!deleted) {
+        return res.status(404).json({ error: "Logbook entry not found" });
+      }
+      res.status(204).send();
+    } catch (error) {
+      res.status(500).json({ error: "Failed to delete logbook entry" });
+    }
+  });
+
+  app.get("/api/logbook/stats/:userId", async (req, res) => {
+    try {
+      const stats = await storage.getUserStats(req.params.userId);
+      res.json(stats);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch user stats" });
     }
   });
 
