@@ -17,7 +17,7 @@ export default function BottomNavigation() {
 
   return (
     <>
-      <nav className="fixed bottom-0 left-0 right-0 bg-gray-900/90 backdrop-blur-sm border-t border-cyan-500/30 px-4 py-2 z-40">
+      <nav className="fixed bottom-0 left-0 right-0 bg-gray-900/50 backdrop-blur-sm border-t border-cyan-500/20 px-4 py-2 z-40">
         <div className="flex items-center justify-around">
           <Link href="/home">
             <button className={cn(

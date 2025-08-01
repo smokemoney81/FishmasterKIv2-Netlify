@@ -50,7 +50,7 @@ export default function Home() {
         <div className="grid grid-cols-4 gap-3">
           <Button
             variant="outline"
-            className="h-auto p-4 flex flex-col items-center space-y-2 bg-gray-900/70 backdrop-blur-sm border border-cyan-500/30 hover:border-cyan-400 transition-all"
+            className="h-auto p-4 flex flex-col items-center space-y-2 bg-gray-900/30 backdrop-blur-sm border border-cyan-500/20 hover:border-cyan-400 transition-all"
             onClick={() => setLocation("/identify")}
           >
             <img src={kiIcon} className="w-10 h-10 object-contain" alt={t("quickActions.kiBuddy")} />
@@ -58,7 +58,7 @@ export default function Home() {
           </Button>
           <Button
             variant="outline"
-            className="h-auto p-4 flex flex-col items-center space-y-2 bg-gray-900/70 backdrop-blur-sm border border-cyan-500/30 hover:border-cyan-400 transition-all"
+            className="h-auto p-4 flex flex-col items-center space-y-2 bg-gray-900/30 backdrop-blur-sm border border-cyan-500/20 hover:border-cyan-400 transition-all"
             onClick={() => setLocation("/map")}
           >
             <img src={mapIcon} className="w-10 h-10 object-contain" alt={t("quickActions.map")} />
@@ -66,7 +66,7 @@ export default function Home() {
           </Button>
           <Button
             variant="outline"
-            className="h-auto p-4 flex flex-col items-center space-y-2 bg-gray-900/70 backdrop-blur-sm border border-cyan-500/30 hover:border-cyan-400 transition-all"
+            className="h-auto p-4 flex flex-col items-center space-y-2 bg-gray-900/30 backdrop-blur-sm border border-cyan-500/20 hover:border-cyan-400 transition-all"
             onClick={() => setShowCatchModal(true)}
           >
             <img src={startFishingIcon} className="w-10 h-10 object-contain" alt={t("quickActions.startFishing")} />
@@ -74,7 +74,7 @@ export default function Home() {
           </Button>
           <Button
             variant="outline"
-            className="h-auto p-4 flex flex-col items-center space-y-2 bg-gray-900/70 backdrop-blur-sm border border-cyan-500/30 hover:border-cyan-400 transition-all"
+            className="h-auto p-4 flex flex-col items-center space-y-2 bg-gray-900/30 backdrop-blur-sm border border-cyan-500/20 hover:border-cyan-400 transition-all"
             onClick={() => setLocation("/tips")}
           >
             <img src={weatherIcon} className="w-10 h-10 object-contain" alt={t("quickActions.weather")} />
@@ -93,7 +93,7 @@ export default function Home() {
         </div>
         <div className="space-y-3">
           {featuredSpots.map((spot) => (
-            <Card key={spot.id} className="overflow-hidden bg-gray-900/70 backdrop-blur-sm border border-cyan-500/30">
+            <Card key={spot.id} className="overflow-hidden bg-gray-900/30 backdrop-blur-sm border border-cyan-500/20">
               <div className="relative h-32">
                 <img 
                   src={spot.imageUrl || "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=300"} 
@@ -130,7 +130,7 @@ export default function Home() {
         </div>
         <div className="grid grid-cols-2 gap-3">
           {featuredSpecies.map((species) => (
-            <Card key={species.id} className="overflow-hidden bg-gray-900/70 backdrop-blur-sm border border-cyan-500/30">
+            <Card key={species.id} className="overflow-hidden bg-gray-900/30 backdrop-blur-sm border border-cyan-500/20">
               <div className="relative h-24">
                 <img 
                   src={species.imageUrl || "https://images.unsplash.com/photo-1544551763-46a013bb70d5?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=200"} 

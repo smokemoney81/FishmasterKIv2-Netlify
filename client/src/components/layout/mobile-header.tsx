@@ -13,7 +13,7 @@ export default function MobileHeader({ title, showBack = false }: MobileHeaderPr
   const [, setLocation] = useLocation();
 
   return (
-    <header className="bg-gray-900/90 backdrop-blur-sm border-b border-cyan-500/30 sticky top-0 z-50">
+    <header className="bg-gray-900/50 backdrop-blur-sm border-b border-cyan-500/20 sticky top-0 z-50">
       <div className="flex items-center justify-between px-4 py-3">
         <div className="flex items-center space-x-3">
           {showBack ? (

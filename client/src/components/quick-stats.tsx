@@ -11,7 +11,7 @@ export default function QuickStats() {
   };
 
   return (
-    <section className="px-4 py-6 bg-gray-900/70 backdrop-blur-sm rounded-lg mx-4 border border-cyan-500/30">
+    <section className="px-4 py-6 bg-gray-900/30 backdrop-blur-sm rounded-lg mx-4 border border-cyan-500/20">
       <div className="text-center text-white">
         <h2 className="text-2xl font-bold mb-2">{t("home.welcome")}</h2>
         <p className="text-cyan-300 mb-4">{t("home.ready")}</p>

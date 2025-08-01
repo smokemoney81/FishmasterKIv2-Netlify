@@ -17,7 +17,7 @@ export default function WeatherWidget() {
   if (!weather) {
     return (
       <section className="px-4 py-4">
-        <Card className="p-4 animate-pulse bg-gray-900/70 backdrop-blur-sm border border-cyan-500/30">
+        <Card className="p-4 animate-pulse bg-gray-900/30 backdrop-blur-sm border border-cyan-500/20">
           <div className="h-20 bg-gray-800 rounded"></div>
         </Card>
       </section>
@@ -36,7 +36,7 @@ export default function WeatherWidget() {
 
   return (
     <section className="px-4 py-4">
-      <Card className="p-4 bg-gray-900/70 backdrop-blur-sm border border-cyan-500/30">
+      <Card className="p-4 bg-gray-900/30 backdrop-blur-sm border border-cyan-500/20">
         <div className="flex items-center justify-between mb-3">
           <h3 className="font-semibold text-gray-100">{t("weather.todaysForecast")}</h3>
           <span className="text-xs text-gray-400">{weather.location}</span>
