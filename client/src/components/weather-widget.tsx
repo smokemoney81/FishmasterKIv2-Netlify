@@ -2,8 +2,10 @@ import { useQuery } from "@tanstack/react-query";
 import { Card } from "@/components/ui/card";
 import { Sun, Wind, Droplets, Eye } from "lucide-react";
 import type { Weather } from "@shared/schema";
+import { useLanguage } from "@/contexts/language-context";
 
 export default function WeatherWidget() {
+  const { t } = useLanguage();
   const { data: weather } = useQuery<Weather>({
     queryKey: ["/api/weather"],
     queryFn: async () => {
@@ -36,7 +38,7 @@ export default function WeatherWidget() {
     <section className="px-4 py-4">
       <Card className="p-4 bg-gray-900/70 backdrop-blur-sm border border-cyan-500/30">
         <div className="flex items-center justify-between mb-3">
-          <h3 className="font-semibold text-gray-100">Today's Fishing Forecast</h3>
+          <h3 className="font-semibold text-gray-100">{t("weather.todaysForecast")}</h3>
           <span className="text-xs text-gray-400">{weather.location}</span>
         </div>
         
@@ -54,7 +56,7 @@ export default function WeatherWidget() {
             <div className={`text-lg font-semibold ${getFishingScoreColor(weather.fishingScore)}`}>
               {weather.fishingScore}
             </div>
-            <div className="text-xs text-gray-400">Fishing Conditions</div>
+            <div className="text-xs text-gray-400">{t("weather.fishingConditions")}</div>
           </div>
         </div>
         

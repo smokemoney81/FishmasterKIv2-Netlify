@@ -1,6 +1,7 @@
 import { Search, Bell, User, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLocation } from "wouter";
+import LanguageSwitcher from "@/components/language-switcher";
 const logoImage = "/icons/file_0000000014b4620aa3c30bfbe711a238_1754053799846.png";
 
 interface MobileHeaderProps {
@@ -27,7 +28,8 @@ export default function MobileHeader({ title, showBack = false }: MobileHeaderPr
           </h1>
         </div>
         
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-2">
+          <LanguageSwitcher />
           <Button variant="ghost" size="sm" className="text-gray-400 hover:text-cyan-400 transition-colors">
             <Search className="w-5 h-5" />
           </Button>

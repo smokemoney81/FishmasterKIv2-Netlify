@@ -9,6 +9,7 @@ import { useState } from "react";
 import CatchLogModal from "@/components/catch-log-modal";
 import { useLocation } from "wouter";
 import type { FishingSpot, FishSpecies, Catch } from "@shared/schema";
+import { useLanguage } from "@/contexts/language-context";
 const startFishingIcon = "/icons/icon_3_1754053799805.png";
 const mapIcon = "/icons/icon_4_1754053799779.png";
 const weatherIcon = "/icons/icon_1_1754053799814.png";
@@ -17,6 +18,7 @@ const kiIcon = "/icons/file_00000000017c6243b22d12cb5649f688_1754053799857.png";
 export default function Home() {
   const [, setLocation] = useLocation();
   const [showCatchModal, setShowCatchModal] = useState(false);
+  const { t } = useLanguage();
 
   const { data: spots = [] } = useQuery<FishingSpot[]>({
     queryKey: ["/api/spots"],
@@ -50,32 +52,32 @@ export default function Home() {
             className="h-auto p-4 flex flex-col items-center space-y-2 bg-gray-900/70 backdrop-blur-sm border border-cyan-500/30 hover:border-cyan-400 transition-all"
             onClick={() => setLocation("/identify")}
           >
-            <img src={kiIcon} className="w-10 h-10 object-contain" alt="KI Buddy" />
-            <span className="text-xs font-medium text-cyan-300">KI Buddy</span>
+            <img src={kiIcon} className="w-10 h-10 object-contain" alt={t("quickActions.kiBuddy")} />
+            <span className="text-xs font-medium text-cyan-300">{t("quickActions.kiBuddy")}</span>
           </Button>
           <Button
             variant="outline"
             className="h-auto p-4 flex flex-col items-center space-y-2 bg-gray-900/70 backdrop-blur-sm border border-cyan-500/30 hover:border-cyan-400 transition-all"
             onClick={() => setLocation("/map")}
           >
-            <img src={mapIcon} className="w-10 h-10 object-contain" alt="Karte" />
-            <span className="text-xs font-medium text-cyan-300">Karte</span>
+            <img src={mapIcon} className="w-10 h-10 object-contain" alt={t("quickActions.map")} />
+            <span className="text-xs font-medium text-cyan-300">{t("quickActions.map")}</span>
           </Button>
           <Button
             variant="outline"
             className="h-auto p-4 flex flex-col items-center space-y-2 bg-gray-900/70 backdrop-blur-sm border border-cyan-500/30 hover:border-cyan-400 transition-all"
             onClick={() => setShowCatchModal(true)}
           >
-            <img src={startFishingIcon} className="w-10 h-10 object-contain" alt="Start Fishing" />
-            <span className="text-xs font-medium text-cyan-300">Start Fishing</span>
+            <img src={startFishingIcon} className="w-10 h-10 object-contain" alt={t("quickActions.startFishing")} />
+            <span className="text-xs font-medium text-cyan-300">{t("quickActions.startFishing")}</span>
           </Button>
           <Button
             variant="outline"
             className="h-auto p-4 flex flex-col items-center space-y-2 bg-gray-900/70 backdrop-blur-sm border border-cyan-500/30 hover:border-cyan-400 transition-all"
             onClick={() => setLocation("/tips")}
           >
-            <img src={weatherIcon} className="w-10 h-10 object-contain" alt="Wetter" />
-            <span className="text-xs font-medium text-cyan-300">Wetter</span>
+            <img src={weatherIcon} className="w-10 h-10 object-contain" alt={t("quickActions.weather")} />
+            <span className="text-xs font-medium text-cyan-300">{t("quickActions.weather")}</span>
           </Button>
         </div>
       </section>

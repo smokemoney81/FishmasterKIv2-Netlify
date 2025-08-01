@@ -3,6 +3,7 @@ import { cn } from "@/lib/utils";
 import { Plus, User } from "lucide-react";
 import { useState } from "react";
 import CatchLogModal from "@/components/catch-log-modal";
+import { useLanguage } from "@/contexts/language-context";
 const homeIcon = "/icons/file_00000000f6186246a8136bebf875e096_1754053799824.png";
 const mapIcon = "/icons/icon_4_1754053799779.png";
 const fangbuchIcon = "/icons/icon_2_1754053799796.png";
@@ -10,6 +11,7 @@ const fangbuchIcon = "/icons/icon_2_1754053799796.png";
 export default function BottomNavigation() {
   const [location] = useLocation();
   const [showCatchModal, setShowCatchModal] = useState(false);
+  const { t } = useLanguage();
 
   const isActive = (path: string) => location === path;
 
@@ -22,8 +24,8 @@ export default function BottomNavigation() {
               "flex flex-col items-center space-y-1 transition-colors",
               isActive("/home") ? "text-cyan-400" : "text-gray-400 hover:text-cyan-400"
             )}>
-              <img src={homeIcon} className="w-5 h-5 object-contain" alt="Home" />
-              <span className="text-xs font-medium">Home</span>
+              <img src={homeIcon} className="w-5 h-5 object-contain" alt={t("nav.home")} />
+              <span className="text-xs font-medium">{t("nav.home")}</span>
             </button>
           </Link>
           
@@ -32,8 +34,8 @@ export default function BottomNavigation() {
               "flex flex-col items-center space-y-1 transition-colors",
               isActive("/map") ? "text-cyan-400" : "text-gray-400 hover:text-cyan-400"
             )}>
-              <img src={mapIcon} className="w-5 h-5 object-contain" alt="Karte" />
-              <span className="text-xs font-medium">Karte</span>
+              <img src={mapIcon} className="w-5 h-5 object-contain" alt={t("nav.map")} />
+              <span className="text-xs font-medium">{t("nav.map")}</span>
             </button>
           </Link>
           
@@ -42,7 +44,7 @@ export default function BottomNavigation() {
             onClick={() => setShowCatchModal(true)}
           >
             <Plus className="w-5 h-5" />
-            <span className="text-xs font-medium">Log</span>
+            <span className="text-xs font-medium">{t("nav.log")}</span>
           </button>
           
           <Link href="/species">
@@ -50,8 +52,8 @@ export default function BottomNavigation() {
               "flex flex-col items-center space-y-1 transition-colors",
               isActive("/species") ? "text-cyan-400" : "text-gray-400 hover:text-cyan-400"
             )}>
-              <img src={fangbuchIcon} className="w-5 h-5 object-contain" alt="Fangbuch" />
-              <span className="text-xs font-medium">Fangbuch</span>
+              <img src={fangbuchIcon} className="w-5 h-5 object-contain" alt={t("nav.species")} />
+              <span className="text-xs font-medium">{t("nav.species")}</span>
             </button>
           </Link>
           
@@ -61,7 +63,7 @@ export default function BottomNavigation() {
               isActive("/profile") ? "text-cyan-400" : "text-gray-400 hover:text-cyan-400"
             )}>
               <User className="w-5 h-5" />
-              <span className="text-xs font-medium">Profile</span>
+              <span className="text-xs font-medium">{t("nav.profile")}</span>
             </button>
           </Link>
         </div>
