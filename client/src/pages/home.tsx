@@ -4,11 +4,15 @@ import QuickStats from "@/components/quick-stats";
 import WeatherWidget from "@/components/weather-widget";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Camera, MapPin, Plus, Lightbulb } from "lucide-react";
+import { Camera, Plus, Lightbulb, MapPin } from "lucide-react";
 import { useState } from "react";
 import CatchLogModal from "@/components/catch-log-modal";
 import { useLocation } from "wouter";
 import type { FishingSpot, FishSpecies, Catch } from "@shared/schema";
+import startFishingIcon from "@assets/icon_3_1754053799805.png";
+import mapIcon from "@assets/icon_4_1754053799779.png";
+import weatherIcon from "@assets/icon_1_1754053799814.png";
+import kiIcon from "@assets/file_00000000017c6243b22d12cb5649f688_1754053799857.png";
 
 export default function Home() {
   const [, setLocation] = useLocation();
@@ -46,40 +50,32 @@ export default function Home() {
             className="h-auto p-4 flex flex-col items-center space-y-2 bg-white hover:shadow-md transition-shadow"
             onClick={() => setLocation("/identify")}
           >
-            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-lg flex items-center justify-center">
-              <Camera className="w-5 h-5 text-white" />
-            </div>
-            <span className="text-xs font-medium text-slate-700">Identify Fish</span>
+            <img src={kiIcon} className="w-10 h-10 object-contain" alt="KI Buddy" />
+            <span className="text-xs font-medium text-slate-700">KI Buddy</span>
           </Button>
           <Button
             variant="outline"
             className="h-auto p-4 flex flex-col items-center space-y-2 bg-white hover:shadow-md transition-shadow"
             onClick={() => setLocation("/map")}
           >
-            <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center">
-              <MapPin className="w-5 h-5 text-white" />
-            </div>
-            <span className="text-xs font-medium text-slate-700">Find Spots</span>
+            <img src={mapIcon} className="w-10 h-10 object-contain" alt="Karte" />
+            <span className="text-xs font-medium text-slate-700">Karte</span>
           </Button>
           <Button
             variant="outline"
             className="h-auto p-4 flex flex-col items-center space-y-2 bg-white hover:shadow-md transition-shadow"
             onClick={() => setShowCatchModal(true)}
           >
-            <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg flex items-center justify-center">
-              <Plus className="w-5 h-5 text-white" />
-            </div>
-            <span className="text-xs font-medium text-slate-700">Log Catch</span>
+            <img src={startFishingIcon} className="w-10 h-10 object-contain" alt="Start Fishing" />
+            <span className="text-xs font-medium text-slate-700">Start Fishing</span>
           </Button>
           <Button
             variant="outline"
             className="h-auto p-4 flex flex-col items-center space-y-2 bg-white hover:shadow-md transition-shadow"
             onClick={() => setLocation("/tips")}
           >
-            <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg flex items-center justify-center">
-              <Lightbulb className="w-5 h-5 text-white" />
-            </div>
-            <span className="text-xs font-medium text-slate-700">Tips</span>
+            <img src={weatherIcon} className="w-10 h-10 object-contain" alt="Wetter" />
+            <span className="text-xs font-medium text-slate-700">Wetter</span>
           </Button>
         </div>
       </section>
@@ -87,9 +83,9 @@ export default function Home() {
       {/* Featured Locations */}
       <section className="px-4 py-6">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-slate-800">Popular Fishing Spots</h3>
+          <h3 className="text-lg font-semibold text-slate-800">Beliebte Angelplätze</h3>
           <Button variant="link" className="text-blue-500 text-sm font-medium p-0" onClick={() => setLocation("/map")}>
-            View All
+            Alle anzeigen
           </Button>
         </div>
         <div className="space-y-3">
@@ -113,7 +109,7 @@ export default function Home() {
                     <MapPin className="w-3 h-3 inline mr-1" />
                     2.3 mi
                   </span>
-                  <span className="text-orange-500 font-medium">{spot.recentCatches} recent catches</span>
+                  <span className="text-orange-500 font-medium">{spot.recentCatches} Fänge</span>
                 </div>
               </div>
             </Card>
@@ -124,9 +120,9 @@ export default function Home() {
       {/* Species Spotlight */}
       <section className="px-4 py-6">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-slate-800">Fish Species Guide</h3>
+          <h3 className="text-lg font-semibold text-slate-800">Fischarten-Guide</h3>
           <Button variant="link" className="text-blue-500 text-sm font-medium p-0" onClick={() => setLocation("/species")}>
-            Browse All
+            Alle durchsuchen
           </Button>
         </div>
         <div className="grid grid-cols-2 gap-3">

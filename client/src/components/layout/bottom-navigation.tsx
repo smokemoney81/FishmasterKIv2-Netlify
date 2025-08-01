@@ -1,8 +1,11 @@
 import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
-import { Home, Map, Plus, Fish, User } from "lucide-react";
+import { Plus, User } from "lucide-react";
 import { useState } from "react";
 import CatchLogModal from "@/components/catch-log-modal";
+import homeIcon from "@assets/file_00000000f6186246a8136bebf875e096_1754053799824.png";
+import mapIcon from "@assets/icon_4_1754053799779.png";
+import fangbuchIcon from "@assets/icon_2_1754053799796.png";
 
 export default function BottomNavigation() {
   const [location] = useLocation();
@@ -19,7 +22,7 @@ export default function BottomNavigation() {
               "flex flex-col items-center space-y-1 transition-colors",
               isActive("/") ? "text-blue-500" : "text-slate-500 hover:text-blue-500"
             )}>
-              <Home className="w-5 h-5" />
+              <img src={homeIcon} className="w-5 h-5 object-contain" alt="Home" />
               <span className="text-xs font-medium">Home</span>
             </button>
           </Link>
@@ -29,8 +32,8 @@ export default function BottomNavigation() {
               "flex flex-col items-center space-y-1 transition-colors",
               isActive("/map") ? "text-blue-500" : "text-slate-500 hover:text-blue-500"
             )}>
-              <Map className="w-5 h-5" />
-              <span className="text-xs font-medium">Map</span>
+              <img src={mapIcon} className="w-5 h-5 object-contain" alt="Karte" />
+              <span className="text-xs font-medium">Karte</span>
             </button>
           </Link>
           
@@ -47,8 +50,8 @@ export default function BottomNavigation() {
               "flex flex-col items-center space-y-1 transition-colors",
               isActive("/species") ? "text-blue-500" : "text-slate-500 hover:text-blue-500"
             )}>
-              <Fish className="w-5 h-5" />
-              <span className="text-xs font-medium">Species</span>
+              <img src={fangbuchIcon} className="w-5 h-5 object-contain" alt="Fangbuch" />
+              <span className="text-xs font-medium">Fangbuch</span>
             </button>
           </Link>
           

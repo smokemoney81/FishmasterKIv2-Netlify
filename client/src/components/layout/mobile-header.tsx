@@ -1,6 +1,7 @@
 import { Search, Bell, User, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLocation } from "wouter";
+import logoImage from "@assets/file_0000000014b4620aa3c30bfbe711a238_1754053799846.png";
 
 interface MobileHeaderProps {
   title?: string;
@@ -19,9 +20,7 @@ export default function MobileHeader({ title, showBack = false }: MobileHeaderPr
               <ArrowLeft className="w-5 h-5" />
             </Button>
           ) : (
-            <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-lg flex items-center justify-center">
-              <span className="text-white text-sm font-bold">🐟</span>
-            </div>
+            <img src={logoImage} className="h-10 w-auto object-contain" alt="FishMasterKI" />
           )}
           <h1 className="text-xl font-bold text-slate-800">
             {title || "FishMasterKI"}
