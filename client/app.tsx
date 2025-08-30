@@ -1,15 +1,3 @@
-import KiBuddy from "./components/KiBuddy";
-
-function App() {
-  return (
-    <div>
-      <h1>🎣 FishMasterKi</h1>
-      <KiBuddy />
-    </div>
-  );
-}
-
-export default App;
 import React from "react";
 import KiBuddy from "./components/KiBuddy";
 
