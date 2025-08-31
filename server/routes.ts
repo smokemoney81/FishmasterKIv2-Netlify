@@ -133,10 +133,7 @@ async function transcribeWithWhisper(audioBuffer: Buffer): Promise<string> {
     }
 
     const formData = new FormData();
-    formData.append('file', audioBuffer, {
-      filename: 'audio.wav',
-      contentType: 'audio/wav'
-    });
+    formData.append('file', audioBuffer, 'audio.wav');
     formData.append('model', 'whisper-1');
     formData.append('language', 'de');
 
@@ -144,9 +141,8 @@ async function transcribeWithWhisper(audioBuffer: Buffer): Promise<string> {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${openaiApiKey}`,
-        ...formData.getHeaders()
       },
-      body: formData
+      body: formData as any
     });
 
     if (!response.ok) {
@@ -332,6 +328,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Audio transcription endpoint for Sigi
+  app.use("/api/sigi/transcribe", (req, res, next) => {
+    if (req.method === 'POST') {
+      req.setEncoding(null);
+      let body = Buffer.alloc(0);
+      req.on('data', (chunk) => {
+        body = Buffer.concat([body, chunk]);
+      });
+      req.on('end', () => {
+        req.body = body;
+        next();
+      });
+    } else {
+      next();
+    }
+  });
+  
   app.post("/api/sigi/transcribe", async (req, res) => {
     try {
       const audioBuffer = req.body;

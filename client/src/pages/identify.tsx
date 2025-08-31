@@ -10,19 +10,19 @@ export default function Identify() {
       
       {/* Camera Section */}
       <section className="px-4 py-6">
-        <Card className="p-6 text-center">
-          <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-full mx-auto mb-4 flex items-center justify-center">
+        <Card className="p-6 text-center bg-gray-900/30 backdrop-blur-sm border border-cyan-500/20">
+          <div className="w-20 h-20 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-full mx-auto mb-4 flex items-center justify-center">
             <Camera className="w-10 h-10 text-white" />
           </div>
-          <h3 className="text-xl font-semibold text-slate-800 mb-2">Identify Your Fish</h3>
-          <p className="text-slate-600 mb-6">Take a photo or upload an image to get instant fish species identification</p>
+          <h3 className="text-xl font-semibold text-gray-100 mb-2">Identify Your Fish</h3>
+          <p className="text-gray-300 mb-6">Take a photo or upload an image to get instant fish species identification</p>
           
           <div className="space-y-3">
-            <Button className="w-full bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700">
+            <Button className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700">
               <Camera className="w-5 h-5 mr-2" />
               Take Photo
             </Button>
-            <Button variant="outline" className="w-full">
+            <Button variant="outline" className="w-full border-cyan-500/30 text-cyan-300 hover:bg-cyan-500/10">
               <Upload className="w-5 h-5 mr-2" />
               Upload from Gallery
             </Button>
@@ -32,14 +32,14 @@ export default function Identify() {
 
       {/* Quick Identification */}
       <section className="px-4 py-2">
-        <Card className="p-4">
-          <h4 className="font-semibold text-slate-800 mb-3">Quick Species Search</h4>
+        <Card className="p-4 bg-gray-900/30 backdrop-blur-sm border border-cyan-500/20">
+          <h4 className="font-semibold text-gray-100 mb-3">Quick Species Search</h4>
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input 
               type="text" 
               placeholder="Search by name or characteristics..."
-              className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full pl-10 pr-4 py-2 bg-gray-800/60 border border-cyan-500/30 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
             />
           </div>
         </Card>
@@ -47,28 +47,28 @@ export default function Identify() {
 
       {/* Identification Tips */}
       <section className="px-4 py-6">
-        <h3 className="text-lg font-semibold text-slate-800 mb-4">Photography Tips</h3>
+        <h3 className="text-lg font-semibold text-gray-100 mb-4">Photography Tips</h3>
         <div className="space-y-3">
-          <Card className="p-4">
+          <Card className="p-4 bg-gray-900/30 backdrop-blur-sm border border-cyan-500/20">
             <div className="flex items-start space-x-3">
-              <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
-                <span className="text-blue-600 font-semibold text-sm">1</span>
+              <div className="w-8 h-8 bg-cyan-500/20 rounded-full flex items-center justify-center flex-shrink-0">
+                <span className="text-cyan-400 font-semibold text-sm">1</span>
               </div>
               <div>
-                <h4 className="font-medium text-slate-800">Good Lighting</h4>
-                <p className="text-sm text-slate-600">Take photos in natural daylight for best results</p>
+                <h4 className="font-medium text-gray-100">Good Lighting</h4>
+                <p className="text-sm text-gray-300">Take photos in natural daylight for best results</p>
               </div>
             </div>
           </Card>
           
-          <Card className="p-4">
+          <Card className="p-4 bg-gray-900/30 backdrop-blur-sm border border-cyan-500/20">
             <div className="flex items-start space-x-3">
-              <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
-                <span className="text-blue-600 font-semibold text-sm">2</span>
+              <div className="w-8 h-8 bg-cyan-500/20 rounded-full flex items-center justify-center flex-shrink-0">
+                <span className="text-cyan-400 font-semibold text-sm">2</span>
               </div>
               <div>
-                <h4 className="font-medium text-slate-800">Full Body Shot</h4>
-                <p className="text-sm text-slate-600">Capture the entire fish including fins and tail</p>
+                <h4 className="font-medium text-gray-100">Full Body Shot</h4>
+                <p className="text-sm text-gray-300">Capture the entire fish including fins and tail</p>
               </div>
             </div>
           </Card>

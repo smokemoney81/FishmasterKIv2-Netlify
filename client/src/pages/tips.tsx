@@ -34,10 +34,10 @@ export default function Tips() {
         <section className="px-4 py-6">
           <div className="flex items-center space-x-2 mb-4">
             <Lightbulb className="w-5 h-5 text-amber-500" />
-            <h3 className="text-lg font-semibold text-slate-800">Today's Featured Tip</h3>
+            <h3 className="text-lg font-semibold text-gray-100">Today's Featured Tip</h3>
           </div>
           
-          <Card className="bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-100 overflow-hidden">
+          <Card className="bg-gradient-to-r from-gray-900/60 to-blue-900/60 backdrop-blur-sm border border-cyan-500/30 overflow-hidden">
             {tips[0].imageUrl && (
               <div className="h-32">
                 <img 
@@ -53,8 +53,8 @@ export default function Tips() {
                   <Lightbulb className="w-4 h-4 text-white" />
                 </div>
                 <div className="flex-1">
-                  <h4 className="font-semibold text-slate-800 mb-2">{tips[0].title}</h4>
-                  <p className="text-sm text-slate-600 mb-3">{tips[0].content}</p>
+                  <h4 className="font-semibold text-gray-100 mb-2">{tips[0].title}</h4>
+                  <p className="text-sm text-gray-300 mb-3">{tips[0].content}</p>
                   
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3 text-xs text-slate-500">
