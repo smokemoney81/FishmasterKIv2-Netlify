@@ -1,6 +1,6 @@
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
-const fishingBackground = "/attached_assets/grok_image_kec1rq_1756607643897.jpg";
+import fishingBackground from "@assets/grok_image_kec1rq_1756607643897.jpg";
 import { useLanguage } from "@/contexts/language-context";
 import LanguageSwitcher from "@/components/language-switcher";
 
