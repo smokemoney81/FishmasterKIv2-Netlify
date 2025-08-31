@@ -33,6 +33,15 @@ export default function MobileHeader({ title, showBack = false }: MobileHeaderPr
         </div>
         
         <div className="flex items-center space-x-2">
+          <Button variant="ghost" size="sm" className="text-gray-400 hover:text-cyan-400 transition-colors" onClick={() => setLocation("/tips")}>
+            💡
+          </Button>
+          <Button variant="ghost" size="sm" className="text-gray-400 hover:text-cyan-400 transition-colors" onClick={() => setLocation("/identify")}>
+            📸
+          </Button>
+          <Button variant="ghost" size="sm" className="text-gray-400 hover:text-cyan-400 transition-colors" onClick={() => setLocation("/profile")}>
+            <User className="w-5 h-5" />
+          </Button>
           <LanguageSwitcher />
         </div>
       </div>

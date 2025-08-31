@@ -40,7 +40,7 @@ export default function BottomNavigation() {
               isActive("/map") ? "text-cyan-400" : "text-gray-400 hover:text-cyan-400"
             )}>
               <img src={mapIcon} className="w-5 h-5 object-contain" alt={t("nav.map")} />
-              <span className="text-xs font-medium">{t("nav.map")}</span>
+              <span className="text-xs font-medium">Karte</span>
             </button>
           </Link>
           
@@ -49,7 +49,7 @@ export default function BottomNavigation() {
             onClick={() => setShowCatchModal(true)}
           >
             <Plus className="w-5 h-5" />
-            <span className="text-xs font-medium">{t("nav.log")}</span>
+            <span className="text-xs font-medium">Angeln</span>
           </button>
           
           <Link href="/species">
@@ -58,7 +58,7 @@ export default function BottomNavigation() {
               isActive("/species") ? "text-cyan-400" : "text-gray-400 hover:text-cyan-400"
             )}>
               <span className="text-xl">🐟</span>
-              <span className="text-xs font-medium">{t("nav.species")}</span>
+              <span className="text-xs font-medium">Fische</span>
             </button>
           </Link>
           
@@ -68,7 +68,7 @@ export default function BottomNavigation() {
               isActive("/logbook") ? "text-cyan-400" : "text-gray-400 hover:text-cyan-400"
             )}>
               <img src={fangbuchIcon} className="w-5 h-5 object-contain" alt={t("nav.logbook")} />
-              <span className="text-xs font-medium">{t("nav.logbook")}</span>
+              <span className="text-xs font-medium">Logbuch</span>
             </button>
           </Link>
         </div>

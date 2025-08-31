@@ -1,4 +1,5 @@
 import { useState, useRef } from "react";
+import { useQuery } from "@tanstack/react-query";
 import MobileHeader from "@/components/layout/mobile-header";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -22,6 +23,28 @@ export default function Profile() {
   const [tempProfileData, setTempProfileData] = useState(profileData);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+
+  // Hole echte User-Statistiken
+  const { data: userStats = { totalPoints: 0, totalCatches: 0, rank: "Anfänger", achievements: [] } } = useQuery({
+    queryKey: ["/api/logbook/stats", "default-user"],
+    queryFn: async () => {
+      const response = await fetch("/api/logbook/stats/default-user");
+      return response.json();
+    }
+  });
+
+  // Hole Fang-Daten für weitere Statistiken
+  const { data: catches = [] } = useQuery({
+    queryKey: ["/api/catches"],
+    queryFn: async () => {
+      const response = await fetch("/api/catches?userId=default-user");
+      return response.json();
+    }
+  });
+
+  // Berechne zusätzliche Statistiken
+  const uniqueSpecies = new Set(catches.map((c: any) => c.speciesId)).size;
+  const totalWeight = catches.reduce((sum: number, c: any) => sum + (c.weight || 0), 0);
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -83,19 +106,32 @@ export default function Profile() {
       {/* Stats Overview */}
       <section className="px-4 py-6">
         <div className="grid grid-cols-3 gap-4">
-          <Card className="p-4 text-center">
-            <div className="text-2xl font-bold text-slate-800">47</div>
-            <div className="text-xs text-slate-500">Total Catches</div>
+          <Card className="p-4 text-center bg-gray-900/30 border-cyan-500/20">
+            <div className="text-2xl font-bold text-cyan-300">{userStats.totalCatches}</div>
+            <div className="text-xs text-gray-400">Gesamte Fänge</div>
           </Card>
-          <Card className="p-4 text-center">
-            <div className="text-2xl font-bold text-slate-800">12</div>
-            <div className="text-xs text-slate-500">Species Found</div>
+          <Card className="p-4 text-center bg-gray-900/30 border-cyan-500/20">
+            <div className="text-2xl font-bold text-cyan-300">{uniqueSpecies}</div>
+            <div className="text-xs text-gray-400">Arten entdeckt</div>
           </Card>
-          <Card className="p-4 text-center">
-            <div className="text-2xl font-bold text-slate-800">8</div>
-            <div className="text-xs text-slate-500">Spots Visited</div>
+          <Card className="p-4 text-center bg-gray-900/30 border-cyan-500/20">
+            <div className="text-2xl font-bold text-cyan-300">{totalWeight.toFixed(1)}kg</div>
+            <div className="text-xs text-gray-400">Gesamtgewicht</div>
           </Card>
         </div>
+        
+        <Card className="mt-4 p-4 bg-gray-900/30 border-cyan-500/20">
+          <div className="flex items-center justify-between">
+            <div>
+              <h4 className="font-semibold text-gray-100">Aktueller Rang</h4>
+              <p className="text-2xl font-bold text-cyan-300">{userStats.rank}</p>
+            </div>
+            <div className="text-right">
+              <p className="text-sm text-gray-400">Punkte</p>
+              <p className="text-xl font-bold text-cyan-300">{userStats.totalPoints}</p>
+            </div>
+          </div>
+        </Card>
       </section>
 
       {/* Achievements */}
