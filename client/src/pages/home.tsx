@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Camera, Plus, Lightbulb, MapPin } from "lucide-react";
 import { useState, useEffect } from "react";
 import CatchLogModal from "@/components/catch-log-modal";
+import VoiceAssistant from "@/components/voice-assistant";
 import { useLocation } from "wouter";
 import type { FishingSpot, FishSpecies, Catch } from "@shared/schema";
 import { useLanguage } from "@/contexts/language-context";
@@ -19,6 +20,7 @@ const kiIcon = "/icons/file_00000000017c6243b22d12cb5649f688_1754053799857.png";
 export default function Home() {
   const [, setLocation] = useLocation();
   const [showCatchModal, setShowCatchModal] = useState(false);
+  const [showVoiceAssistant, setShowVoiceAssistant] = useState(false);
   const { t } = useLanguage();
   
   // Zeit und Wetter State
@@ -93,13 +95,7 @@ export default function Home() {
           {/* Button für KI-Assistent */}
           <Button
             className="px-6 py-3 bg-green-500 text-white font-bold rounded-lg shadow-lg hover:bg-green-600 transition"
-            onClick={() => {
-              // Öffnet das Sigi Chat
-              const sigiButton = document.querySelector('[data-testid="sigi-chat-button"]') as HTMLButtonElement;
-              if (sigiButton) {
-                sigiButton.click();
-              }
-            }}
+            onClick={() => setShowVoiceAssistant(true)}
           >
             🎤 KI-Assistent starten
           </Button>
@@ -274,6 +270,11 @@ export default function Home() {
       <CatchLogModal 
         isOpen={showCatchModal} 
         onClose={() => setShowCatchModal(false)} 
+      />
+      
+      <VoiceAssistant
+        isOpen={showVoiceAssistant}
+        onClose={() => setShowVoiceAssistant(false)}
       />
     </>
   );
