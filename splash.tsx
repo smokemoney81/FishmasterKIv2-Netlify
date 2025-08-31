@@ -17,7 +17,13 @@ export default function SplashPage() {
           backgroundImage: `url(${fishingBackground})`,
         }}
       >
+        {/* Dark overlay for better text visibility */}
         <div className="absolute inset-0 bg-black/40 backdrop-blur-[1px]"></div>
+      </div>
+
+      {/* Language Switcher */}
+      <div className="absolute top-4 right-4 z-20">
+        <LanguageSwitcher />
       </div>
 
       {/* Main Splash Content */}
@@ -32,9 +38,17 @@ export default function SplashPage() {
           <p className="text-cyan-200 text-lg tracking-[0.2em] mb-8 drop-shadow-lg">
             {t("splash.subtitle")}
           </p>
-          <Button onClick={() => setLocation("/home")}>
+          {/* Start Button */}
+          <Button
+            onClick={() => setLocation("/home")}
+            className="bg-gradient-to-r from-cyan-500 via-blue-500 to-cyan-600 hover:from-cyan-400 hover:via-blue-400 hover:to-cyan-500 text-white px-12 py-6 text-xl font-bold rounded-full shadow-2xl transform transition-all duration-300 hover:scale-105"
+          >
             Jetzt Angeln Starten
           </Button>
+        </div>
+        {/* Bottom decoration */}
+        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2">
+          <div className="w-1 h-12 bg-gradient-to-b from-cyan-400 to-transparent rounded-full"></div>
         </div>
       </div>
     </div>

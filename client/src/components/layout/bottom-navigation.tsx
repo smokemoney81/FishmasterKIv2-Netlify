@@ -1,13 +1,13 @@
 import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
-import { Plus, User } from "lucide-react";
+import { Plus } from "lucide-react"; // Profil-Icon entfernt
 import { useState } from "react";
 import CatchLogModal from "@/components/catch-log-modal";
 import { useLanguage } from "@/contexts/language-context";
 import { useScrollHide } from "@/hooks/use-scroll-hide";
+
 const homeIcon = "/icons/file_00000000f6186246a8136bebf875e096_1754053799824.png";
 const mapIcon = "/icons/icon_4_1754053799779.png";
-const fangbuchIcon = "/icons/icon_2_1754053799796.png";
 
 export default function BottomNavigation() {
   const [location] = useLocation();
@@ -48,28 +48,8 @@ export default function BottomNavigation() {
             onClick={() => setShowCatchModal(true)}
           >
             <Plus className="w-5 h-5" />
-            <span className="text-xs font-medium">{t("nav.log")}</span>
+            <span className="text-xs font-medium">{t("nav.addCatch")}</span> {/* Beispiel für Catch-Button */}
           </button>
-          
-          <Link href="/logbook">
-            <button className={cn(
-              "flex flex-col items-center space-y-1 transition-colors",
-              isActive("/logbook") ? "text-cyan-400" : "text-gray-400 hover:text-cyan-400"
-            )}>
-              <img src={fangbuchIcon} className="w-5 h-5 object-contain" alt={t("nav.species")} />
-              <span className="text-xs font-medium">{t("nav.species")}</span>
-            </button>
-          </Link>
-          
-          <Link href="/profile">
-            <button className={cn(
-              "flex flex-col items-center space-y-1 transition-colors",
-              isActive("/profile") ? "text-cyan-400" : "text-gray-400 hover:text-cyan-400"
-            )}>
-              <User className="w-5 h-5" />
-              <span className="text-xs font-medium">{t("nav.profile")}</span>
-            </button>
-          </Link>
         </div>
       </nav>
 
