@@ -43,11 +43,14 @@ export default function KiBuddy() {
     setIsTyping(true);
     
     // Kontext für Sigi zusammenstellen
+    const catchesArray = Array.isArray(catches) ? catches : [];
+    const spotsArray = Array.isArray(spots) ? spots : [];
+    
     const sigiContext = {
       userStats: {
-        totalCatches: catches.length,
-        bestCatch: Math.max(...catches.map((c: any) => c.weight || 0), 0),
-        favoriteSpots: spots.slice(0, 3).map((s: any) => s.name),
+        totalCatches: catchesArray.length,
+        bestCatch: Math.max(...catchesArray.map((c: any) => c.weight || 0), 0),
+        favoriteSpots: spotsArray.slice(0, 3).map((s: any) => s.name),
         equipment: []
       },
       weather: weather || {},
