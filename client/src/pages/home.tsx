@@ -3,16 +3,12 @@ import MobileHeader from "@/components/layout/mobile-header";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Package, Mic, Thermometer, Wind, Droplets, Eye } from "lucide-react";
+import { MapPin, Package, Mic, Thermometer, Wind, Droplets, Eye, Camera, Fish, Map, BookOpen, Trophy, HelpCircle, Settings, User, Lightbulb, Activity, Calendar } from "lucide-react";
 import { useState, useEffect } from "react";
 import CatchLogModal from "@/components/catch-log-modal";
 import VoiceAssistant from "@/components/voice-assistant";
 import { useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
-const startFishingIcon = "/icons/icon_3_1754053799805.png";
-const mapIcon = "/icons/icon_4_1754053799779.png";
-const weatherIcon = "/icons/icon_1_1754053799814.png";
-const kiIcon = "/icons/file_00000000017c6243b22d12cb5649f688_1754053799857.png";
 
 export default function Home() {
   const [, setLocation] = useLocation();
@@ -20,225 +16,269 @@ export default function Home() {
   const [showVoiceAssistant, setShowVoiceAssistant] = useState(false);
   const { toast } = useToast();
   
-  // Zeit und Wetter State
-  const [time, setTime] = useState(new Date());
-  const [weather, setWeather] = useState("sunny");
-
-  // Zeit aktualisieren
-  useEffect(() => {
-    const timer = setInterval(() => setTime(new Date()), 1000);
-    return () => clearInterval(timer);
-  }, []);
-
-  // Wetter je nach Tageszeit
-  useEffect(() => {
-    const hour = time.getHours();
-    if (hour >= 18 && hour < 21) {
-      setWeather("evening");
-    } else if (hour >= 21 || hour < 6) {
-      setWeather("night");
-    } else {
-      setWeather("sunny");
+  // Wetter-Daten abrufen
+  const { data: weather } = useQuery({ 
+    queryKey: ['/api/weather'], 
+    queryFn: async () => {
+      const response = await fetch("/api/weather?lat=39.0968&lng=-120.0324");
+      return response.json();
     }
-  }, [time]);
-
-  // Analoge Uhr rendern
-  const renderAnalogClock = () => {
-    const hour = time.getHours() % 12;
-    const minute = time.getMinutes();
-    const second = time.getSeconds();
-    
-    const hourAngle = (hour * 30) + (minute * 0.5);
-    const minuteAngle = minute * 6;
-    const secondAngle = second * 6;
-    
-    return (
-      <div className="relative w-16 h-16 rounded-full border-2 border-cyan-400 bg-gray-800/60">
-        {/* Stunden-Zeiger */}
-        <div 
-          className="absolute top-1/2 left-1/2 w-0.5 h-4 bg-cyan-300 rounded-full origin-bottom"
-          style={{
-            transform: `translate(-50%, -100%) rotate(${hourAngle}deg)`,
-            transformOrigin: 'bottom'
-          }}
-        />
-        {/* Minuten-Zeiger */}
-        <div 
-          className="absolute top-1/2 left-1/2 w-0.5 h-6 bg-cyan-400 rounded-full origin-bottom"
-          style={{
-            transform: `translate(-50%, -100%) rotate(${minuteAngle}deg)`,
-            transformOrigin: 'bottom'
-          }}
-        />
-        {/* Sekunden-Zeiger */}
-        <div 
-          className="absolute top-1/2 left-1/2 w-px h-6 bg-red-400 rounded-full origin-bottom"
-          style={{
-            transform: `translate(-50%, -100%) rotate(${secondAngle}deg)`,
-            transformOrigin: 'bottom'
-          }}
-        />
-        {/* Mittelpunkt */}
-        <div className="absolute top-1/2 left-1/2 w-1 h-1 bg-cyan-400 rounded-full transform -translate-x-1/2 -translate-y-1/2" />
-      </div>
-    );
-  };
-
-  // Wetter Icon
-  const renderWeatherIcon = () => {
-    switch (weather) {
-      case "sunny":
-        return <span style={{ fontSize: "1.5rem" }}>🌞</span>;
-      case "evening":
-        return <span style={{ fontSize: "1.5rem" }}>🌇</span>;
-      case "night":
-        return <span style={{ fontSize: "1.5rem" }}>🌙</span>;
-      default:
-        return <span style={{ fontSize: "1.5rem" }}>☁️</span>;
-    }
-  };
-
-  // Wetter-Daten simulieren
-  const weatherData = {
-    temperature: 18,
-    humidity: 65,
-    windSpeed: 12,
-    visibility: 8.5,
-    condition: weather
-  };
+  });
 
   return (
     <>
       <MobileHeader />
       
-      {/* Kompakte Übersichts-Seite ohne Scrollen */}
-      <div className="px-4 py-4 max-h-screen overflow-hidden">
+      {/* Übersichtliche Funktions-Struktur */}
+      <div className="px-4 py-4 overflow-y-auto pb-20">
         
-        {/* Zeile 1: Zeit und Wetter */}
-        <div className="grid grid-cols-3 gap-3 mb-4">
-          {/* Digitale Uhr */}
-          <Card className="p-3 bg-gray-900/60 border-cyan-500/30 text-center">
-            <div className="text-cyan-300 text-lg font-mono font-bold">
-              {time.toLocaleTimeString("de-DE", { hour: '2-digit', minute: '2-digit' })}
-            </div>
-            <div className="text-xs text-gray-400">Digital</div>
-          </Card>
-          
-          {/* Analoge Uhr */}
-          <Card className="p-3 bg-gray-900/60 border-cyan-500/30 flex flex-col items-center">
-            {renderAnalogClock()}
-            <div className="text-xs text-gray-400 mt-1">Analog</div>
-          </Card>
-          
-          {/* Wetter mit Sonne */}
-          <Card className="p-3 bg-gray-900/60 border-cyan-500/30 text-center">
-            {renderWeatherIcon()}
-            <div className="text-xs text-gray-400">{weatherData.temperature}°C</div>
-          </Card>
-        </div>
-        
-        {/* Zeile 2: Wetter-Statistiken */}
-        <Card className="p-3 mb-4 bg-gray-900/60 border-cyan-500/30">
-          <h3 className="text-sm font-semibold text-gray-100 mb-2">Wetter-Statistiken</h3>
-          <div className="grid grid-cols-4 gap-2 text-center">
-            <div>
-              <Thermometer className="w-4 h-4 text-orange-400 mx-auto mb-1" />
-              <div className="text-xs text-cyan-300">{weatherData.temperature}°C</div>
-            </div>
-            <div>
-              <Droplets className="w-4 h-4 text-blue-400 mx-auto mb-1" />
-              <div className="text-xs text-cyan-300">{weatherData.humidity}%</div>
-            </div>
-            <div>
-              <Wind className="w-4 h-4 text-gray-400 mx-auto mb-1" />
-              <div className="text-xs text-cyan-300">{weatherData.windSpeed} km/h</div>
-            </div>
-            <div>
-              <Eye className="w-4 h-4 text-green-400 mx-auto mb-1" />
-              <div className="text-xs text-cyan-300">{weatherData.visibility} km</div>
-            </div>
-          </div>
-        </Card>
-        
-        {/* Zeile 3: Haupt-Buttons */}
-        <div className="grid grid-cols-2 gap-3 mb-4">
-          {/* KI Sprach-Assistent Button */}
-          <Button
-            className="h-16 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 flex flex-col items-center justify-center"
-            onClick={() => setShowVoiceAssistant(true)}
-          >
-            <Mic className="w-6 h-6 mb-1" />
-            <span className="text-xs font-medium">KI Sprach-Assistent</span>
-          </Button>
-          
-          {/* Ausrüstungs-Button */}
-          <Button
-            variant="outline"
-            className="h-16 border-cyan-500/30 text-cyan-300 hover:bg-cyan-500/10 flex flex-col items-center justify-center"
-            onClick={() => {
-              setLocation("/tips");
-              toast({
-                title: "Ausrüstung",
-                description: "Zur Equipment-Planung..."
-              });
-            }}
-          >
-            <Package className="w-6 h-6 mb-1" />
-            <span className="text-xs font-medium">Ausrüstung</span>
-          </Button>
-        </div>
-        
-        {/* Zeile 4: Navigation Grid */}
-        <div className="grid grid-cols-4 gap-2 mb-4">
-          <Button
-            variant="outline"
-            className="h-16 border-cyan-500/20 hover:border-cyan-400 flex flex-col items-center justify-center bg-gray-900/30"
-            onClick={() => setLocation("/map")}
-          >
-            <img src={mapIcon} className="w-6 h-6 mb-1" alt="Karte" />
-            <span className="text-xs text-cyan-300">Karte</span>
-          </Button>
-          
-          <Button
-            variant="outline"
-            className="h-16 border-cyan-500/20 hover:border-cyan-400 flex flex-col items-center justify-center bg-gray-900/30"
-            onClick={() => setShowCatchModal(true)}
-          >
-            <img src={startFishingIcon} className="w-6 h-6 mb-1" alt="Angeln" />
-            <span className="text-xs text-cyan-300">Angeln</span>
-          </Button>
-          
-          <Button
-            variant="outline"
-            className="h-16 border-cyan-500/20 hover:border-cyan-400 flex flex-col items-center justify-center bg-gray-900/30"
-            onClick={() => setLocation("/species")}
-          >
-            <span className="text-2xl mb-1">🐟</span>
-            <span className="text-xs text-cyan-300">Fische</span>
-          </Button>
-          
-          <Button
-            variant="outline"
-            className="h-16 border-cyan-500/20 hover:border-cyan-400 flex flex-col items-center justify-center bg-gray-900/30"
-            onClick={() => setLocation("/logbook")}
-          >
-            <span className="text-2xl mb-1">📖</span>
-            <span className="text-xs text-cyan-300">Logbuch</span>
-          </Button>
-        </div>
-        
-        {/* Zeile 5: Schnell-Info */}
-        <Card className="p-3 bg-gray-900/60 border-cyan-500/30">
+        {/* Wetter-Info Bar */}
+        <Card className="p-3 mb-4 bg-gradient-to-r from-blue-900/50 to-cyan-900/50 border-cyan-500/30">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              {renderWeatherIcon()}
-              <span className="text-sm text-gray-100">
-                Perfekte Angel-Zeit! 🎣
-              </span>
+            <div className="flex items-center space-x-3">
+              <Activity className="w-5 h-5 text-cyan-400" />
+              <div>
+                <div className="text-sm font-semibold text-cyan-300">Aktuelles Wetter</div>
+                <div className="text-xs text-gray-300">
+                  {weather?.temperature || 18}°C • {weather?.condition || "Klar"} • {weather?.fishingScore || "Gut"}
+                </div>
+              </div>
             </div>
             <Badge className="bg-green-500/20 text-green-400 border-green-500/30">
-              Aktiv
+              🎣 Ideal
             </Badge>
+          </div>
+        </Card>
+
+        {/* Hauptfunktionen */}
+        <section className="mb-6">
+          <h2 className="text-lg font-bold text-cyan-300 mb-3 flex items-center">
+            <span className="mr-2">⭐</span> Hauptfunktionen
+          </h2>
+          <div className="grid grid-cols-2 gap-3">
+            <Button
+              className="h-24 bg-gradient-to-br from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 flex flex-col items-center justify-center"
+              onClick={() => setShowCatchModal(true)}
+            >
+              <Fish className="w-8 h-8 mb-2" />
+              <span className="text-sm font-semibold">Fang erfassen</span>
+              <span className="text-xs opacity-90">Neuen Fang loggen</span>
+            </Button>
+            
+            <Button
+              className="h-24 bg-gradient-to-br from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 flex flex-col items-center justify-center"
+              onClick={() => setShowVoiceAssistant(true)}
+            >
+              <Mic className="w-8 h-8 mb-2" />
+              <span className="text-sm font-semibold">Sigi KI</span>
+              <span className="text-xs opacity-90">Sprach-Assistent</span>
+            </Button>
+          </div>
+        </section>
+
+        {/* Navigation & Entdecken */}
+        <section className="mb-6">
+          <h2 className="text-lg font-bold text-cyan-300 mb-3 flex items-center">
+            <span className="mr-2">🗺️</span> Navigation & Entdecken
+          </h2>
+          <div className="grid grid-cols-3 gap-3">
+            <Button
+              variant="outline"
+              className="h-20 border-cyan-500/30 hover:border-cyan-400 bg-slate-800/50 flex flex-col items-center justify-center"
+              onClick={() => setLocation("/map")}
+            >
+              <Map className="w-6 h-6 mb-1 text-cyan-400" />
+              <span className="text-xs font-medium text-gray-200">Karte</span>
+              <span className="text-xs text-gray-400">Angelplätze</span>
+            </Button>
+            
+            <Button
+              variant="outline"
+              className="h-20 border-cyan-500/30 hover:border-cyan-400 bg-slate-800/50 flex flex-col items-center justify-center"
+              onClick={() => setLocation("/species")}
+            >
+              <span className="text-2xl mb-1">🐟</span>
+              <span className="text-xs font-medium text-gray-200">Fischarten</span>
+              <span className="text-xs text-gray-400">Datenbank</span>
+            </Button>
+            
+            <Button
+              variant="outline"
+              className="h-20 border-cyan-500/30 hover:border-cyan-400 bg-slate-800/50 flex flex-col items-center justify-center"
+              onClick={() => setLocation("/logbook")}
+            >
+              <BookOpen className="w-6 h-6 mb-1 text-cyan-400" />
+              <span className="text-xs font-medium text-gray-200">Logbuch</span>
+              <span className="text-xs text-gray-400">Historie</span>
+            </Button>
+          </div>
+        </section>
+
+        {/* KI & Analyse */}
+        <section className="mb-6">
+          <h2 className="text-lg font-bold text-cyan-300 mb-3 flex items-center">
+            <span className="mr-2">🤖</span> KI & Analyse
+          </h2>
+          <div className="grid grid-cols-3 gap-3">
+            <Button
+              variant="outline"
+              className="h-20 border-cyan-500/30 hover:border-cyan-400 bg-slate-800/50 flex flex-col items-center justify-center"
+              onClick={() => setLocation("/identify")}
+            >
+              <Camera className="w-6 h-6 mb-1 text-cyan-400" />
+              <span className="text-xs font-medium text-gray-200">Identifikation</span>
+              <span className="text-xs text-gray-400">Fisch-KI</span>
+            </Button>
+            
+            <Button
+              variant="outline"
+              className="h-20 border-cyan-500/30 hover:border-cyan-400 bg-slate-800/50 flex flex-col items-center justify-center"
+              onClick={() => {
+                toast({
+                  title: "Wetter-Analyse",
+                  description: "Detaillierte Wetter-Prognose wird geladen..."
+                });
+              }}
+            >
+              <Thermometer className="w-6 h-6 mb-1 text-orange-400" />
+              <span className="text-xs font-medium text-gray-200">Wetter</span>
+              <span className="text-xs text-gray-400">Prognose</span>
+            </Button>
+            
+            <Button
+              variant="outline"
+              className="h-20 border-cyan-500/30 hover:border-cyan-400 bg-slate-800/50 flex flex-col items-center justify-center"
+              onClick={() => {
+                toast({
+                  title: "Statistiken",
+                  description: "Ihre Fang-Statistiken werden analysiert..."
+                });
+              }}
+            >
+              <Activity className="w-6 h-6 mb-1 text-green-400" />
+              <span className="text-xs font-medium text-gray-200">Statistiken</span>
+              <span className="text-xs text-gray-400">Analyse</span>
+            </Button>
+          </div>
+        </section>
+
+        {/* Lernen & Community */}
+        <section className="mb-6">
+          <h2 className="text-lg font-bold text-cyan-300 mb-3 flex items-center">
+            <span className="mr-2">📚</span> Lernen & Community
+          </h2>
+          <div className="grid grid-cols-3 gap-3">
+            <Button
+              variant="outline"
+              className="h-20 border-cyan-500/30 hover:border-cyan-400 bg-slate-800/50 flex flex-col items-center justify-center"
+              onClick={() => setLocation("/tips")}
+            >
+              <Lightbulb className="w-6 h-6 mb-1 text-yellow-400" />
+              <span className="text-xs font-medium text-gray-200">Tipps</span>
+              <span className="text-xs text-gray-400">Ratgeber</span>
+            </Button>
+            
+            <Button
+              variant="outline"
+              className="h-20 border-cyan-500/30 hover:border-cyan-400 bg-slate-800/50 flex flex-col items-center justify-center"
+              onClick={() => {
+                toast({
+                  title: "Turniere",
+                  description: "Kommende Angel-Turniere werden geladen..."
+                });
+              }}
+            >
+              <Trophy className="w-6 h-6 mb-1 text-yellow-400" />
+              <span className="text-xs font-medium text-gray-200">Turniere</span>
+              <span className="text-xs text-gray-400">Events</span>
+            </Button>
+            
+            <Button
+              variant="outline"
+              className="h-20 border-cyan-500/30 hover:border-cyan-400 bg-slate-800/50 flex flex-col items-center justify-center"
+              onClick={() => {
+                toast({
+                  title: "Community",
+                  description: "Community-Features werden geladen..."
+                });
+              }}
+            >
+              <User className="w-6 h-6 mb-1 text-cyan-400" />
+              <span className="text-xs font-medium text-gray-200">Community</span>
+              <span className="text-xs text-gray-400">Angler</span>
+            </Button>
+          </div>
+        </section>
+
+        {/* Werkzeuge & Einstellungen */}
+        <section className="mb-6">
+          <h2 className="text-lg font-bold text-cyan-300 mb-3 flex items-center">
+            <span className="mr-2">⚙️</span> Werkzeuge & Einstellungen
+          </h2>
+          <div className="grid grid-cols-3 gap-3">
+            <Button
+              variant="outline"
+              className="h-20 border-cyan-500/30 hover:border-cyan-400 bg-slate-800/50 flex flex-col items-center justify-center"
+              onClick={() => {
+                setLocation("/tips");
+                toast({
+                  title: "Equipment-Planer",
+                  description: "Öffne Equipment-Planung..."
+                });
+              }}
+            >
+              <Package className="w-6 h-6 mb-1 text-cyan-400" />
+              <span className="text-xs font-medium text-gray-200">Equipment</span>
+              <span className="text-xs text-gray-400">Planer</span>
+            </Button>
+            
+            <Button
+              variant="outline"
+              className="h-20 border-cyan-500/30 hover:border-cyan-400 bg-slate-800/50 flex flex-col items-center justify-center"
+              onClick={() => {
+                toast({
+                  title: "Kalender",
+                  description: "Angel-Kalender wird geladen..."
+                });
+              }}
+            >
+              <Calendar className="w-6 h-6 mb-1 text-cyan-400" />
+              <span className="text-xs font-medium text-gray-200">Kalender</span>
+              <span className="text-xs text-gray-400">Planung</span>
+            </Button>
+            
+            <Button
+              variant="outline"
+              className="h-20 border-cyan-500/30 hover:border-cyan-400 bg-slate-800/50 flex flex-col items-center justify-center"
+              onClick={() => setLocation("/profile")}
+            >
+              <Settings className="w-6 h-6 mb-1 text-gray-400" />
+              <span className="text-xs font-medium text-gray-200">Profil</span>
+              <span className="text-xs text-gray-400">Settings</span>
+            </Button>
+          </div>
+        </section>
+
+        {/* Quick Stats */}
+        <Card className="p-4 bg-gradient-to-r from-slate-800/50 to-slate-900/50 border-cyan-500/30">
+          <h3 className="text-sm font-semibold text-cyan-300 mb-3">Schnell-Statistik</h3>
+          <div className="grid grid-cols-4 gap-2 text-center">
+            <div>
+              <div className="text-xl font-bold text-cyan-400">0</div>
+              <div className="text-xs text-gray-400">Heute</div>
+            </div>
+            <div>
+              <div className="text-xl font-bold text-cyan-400">0</div>
+              <div className="text-xs text-gray-400">Diese Woche</div>
+            </div>
+            <div>
+              <div className="text-xl font-bold text-cyan-400">0</div>
+              <div className="text-xs text-gray-400">Diesen Monat</div>
+            </div>
+            <div>
+              <div className="text-xl font-bold text-cyan-400">0</div>
+              <div className="text-xs text-gray-400">Gesamt</div>
+            </div>
           </div>
         </Card>
 

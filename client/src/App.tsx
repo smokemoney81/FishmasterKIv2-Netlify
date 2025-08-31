@@ -21,49 +21,43 @@ function Router() {
     <Switch>
       <Route path="/" component={Splash} />
       <Route path="/home">
-        <div className="min-h-screen" style={{
-          backgroundImage: 'linear-gradient(rgba(10, 26, 42, 0.3), rgba(26, 61, 92, 0.3)), url(/file_000000001858620a97cb33f0ecc79a29_1754058073370.png)', 
-          backgroundSize: 'cover', 
-          backgroundPosition: 'center', 
-          backgroundAttachment: 'fixed',
-          backgroundRepeat: 'no-repeat'
-        }}>
+        <div className="min-h-screen bg-gradient-to-b from-slate-900 via-blue-900 to-slate-900">
           <Home />
           <BottomNavigation />
         </div>
       </Route>
       <Route path="/map">
-        <div className="min-h-screen bg-background">
+        <div className="min-h-screen bg-gradient-to-b from-slate-900 via-blue-900 to-slate-900">
           <Map />
           <BottomNavigation />
         </div>
       </Route>
       <Route path="/identify">
-        <div className="min-h-screen bg-background">
+        <div className="min-h-screen bg-gradient-to-b from-slate-900 via-blue-900 to-slate-900">
           <Identify />
           <BottomNavigation />
         </div>
       </Route>
       <Route path="/species">
-        <div className="min-h-screen bg-background">
+        <div className="min-h-screen bg-gradient-to-b from-slate-900 via-blue-900 to-slate-900">
           <Species />
           <BottomNavigation />
         </div>
       </Route>
       <Route path="/logbook">
-        <div className="min-h-screen bg-background">
+        <div className="min-h-screen bg-gradient-to-b from-slate-900 via-blue-900 to-slate-900">
           <Logbook />
           <BottomNavigation />
         </div>
       </Route>
       <Route path="/tips">
-        <div className="min-h-screen bg-background">
+        <div className="min-h-screen bg-gradient-to-b from-slate-900 via-blue-900 to-slate-900">
           <Tips />
           <BottomNavigation />
         </div>
       </Route>
       <Route path="/profile">
-        <div className="min-h-screen bg-background">
+        <div className="min-h-screen bg-gradient-to-b from-slate-900 via-blue-900 to-slate-900">
           <Profile />
           <BottomNavigation />
         </div>
