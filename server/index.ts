@@ -69,16 +69,3 @@ app.use((req, res, next) => {
     log(`serving on port ${port}`);
   });
 })();
-import express from "express";
-import bodyParser from "body-parser";
-import kiBuddyRoute from "./kibuddy";
-
-const app = express();
-app.use(bodyParser.json());
-
-// API-Routen
-app.use("/api", kiBuddyRoute);
-
-app.listen(3000, () => {
-  console.log("Server läuft auf Port 3000");
-});
