@@ -1,7 +1,7 @@
 
 import React, { useState, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { X, Mic, MicOff, Send, Square, Volume2, VolumeX } from "lucide-react";
+import { X, Mic, MicOff, Send, Volume2, VolumeX } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
@@ -13,6 +13,13 @@ interface VoiceAssistantProps {
   onClose: () => void;
 }
 
+interface ChatMessage {
+  id: number;
+  type: 'user' | 'ai';
+  message: string;
+  timestamp: Date;
+}
+
 export default function VoiceAssistant({ isOpen, onClose }: VoiceAssistantProps) {
   const { toast } = useToast();
   const { t } = useLanguage();
@@ -20,8 +27,15 @@ export default function VoiceAssistant({ isOpen, onClose }: VoiceAssistantProps)
   const [isMuted, setIsMuted] = useState(false);
   const [recordedAudio, setRecordedAudio] = useState<Blob | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [isReady, setIsReady] = useState(true);
-  const [sigiResponse, setSigiResponse] = useState<string>("");
+  const [currentMessage, setCurrentMessage] = useState("");
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([
+    {
+      id: 0,
+      type: 'ai',
+      message: 'Hallo! Ich bin Sigi, Ihr Angel-Experte. Wie kann ich Ihnen heute helfen?',
+      timestamp: new Date()
+    }
+  ]);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
 
@@ -37,8 +51,6 @@ export default function VoiceAssistant({ isOpen, onClose }: VoiceAssistantProps)
   });
 
   const startRecording = async () => {
-    if (!isReady) return;
-    
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       mediaRecorderRef.current = new MediaRecorder(stream);
@@ -51,18 +63,12 @@ export default function VoiceAssistant({ isOpen, onClose }: VoiceAssistantProps)
       mediaRecorderRef.current.onstop = () => {
         const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/wav' });
         setRecordedAudio(audioBlob);
+        processAudioAndSend(audioBlob);
         stream.getTracks().forEach(track => track.stop());
       };
 
       mediaRecorderRef.current.start();
       setIsRecording(true);
-      setIsReady(false);
-      setSigiResponse("");
-      
-      toast({
-        title: "Aufnahme gestartet",
-        description: "Sprechen Sie jetzt mit Sigi...",
-      });
     } catch (error) {
       toast({
         title: "Mikrofon-Fehler",
@@ -76,38 +82,49 @@ export default function VoiceAssistant({ isOpen, onClose }: VoiceAssistantProps)
     if (mediaRecorderRef.current && isRecording) {
       mediaRecorderRef.current.stop();
       setIsRecording(false);
-      
-      toast({
-        title: "Aufnahme beendet",
-        description: "Bereit zum Absenden an Sigi.",
-      });
     }
   };
 
-  const cancelRecording = () => {
-    if (mediaRecorderRef.current && isRecording) {
-      mediaRecorderRef.current.stop();
-      setIsRecording(false);
-    }
-    setRecordedAudio(null);
-    audioChunksRef.current = [];
-    setIsReady(true);
-    setSigiResponse("");
+  const processAudioAndSend = async (audioBlob: Blob) => {
+    setIsProcessing(true);
     
-    toast({
-      title: "Aufnahme abgebrochen",
-      description: "Bereit für neue Aufnahme.",
-    });
+    // Demo: Simuliere Spracherkennung
+    const demoTranscript = "Wie ist das Wetter heute zum Angeln?";
+    
+    // Füge User-Nachricht hinzu
+    const userMessage: ChatMessage = {
+      id: Date.now(),
+      type: 'user',
+      message: demoTranscript,
+      timestamp: new Date()
+    };
+    setChatMessages(prev => [...prev, userMessage]);
+    
+    // Sende an Sigi
+    await sendToSigi(demoTranscript);
   };
 
-  const sendToSigi = async () => {
-    if (!recordedAudio) return;
+  const sendTextMessage = async () => {
+    if (!currentMessage.trim()) return;
     
+    const userMessage: ChatMessage = {
+      id: Date.now(),
+      type: 'user',
+      message: currentMessage.trim(),
+      timestamp: new Date()
+    };
+    
+    setChatMessages(prev => [...prev, userMessage]);
+    const messageToSend = currentMessage.trim();
+    setCurrentMessage("");
+    
+    await sendToSigi(messageToSend);
+  };
+
+  const sendToSigi = async (messageText: string) => {
     setIsProcessing(true);
     
     try {
-      const demoMessage = "Hallo Sigi, wie ist das Wetter heute zum Angeln?";
-      
       const catchesArray = Array.isArray(catches) ? catches : [];
       const spotsArray = Array.isArray(spots) ? spots : [];
       
@@ -129,13 +146,21 @@ export default function VoiceAssistant({ isOpen, onClose }: VoiceAssistantProps)
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          message: demoMessage,
+          message: messageText,
           context: sigiContext
         })
       });
       
       const data = await response.json();
-      setSigiResponse(data.reply || "Entschuldigung, ich konnte Ihre Anfrage nicht verarbeiten.");
+      
+      const sigiMessage: ChatMessage = {
+        id: Date.now() + 1,
+        type: 'ai',
+        message: data.reply || "Entschuldigung, ich konnte Ihre Anfrage nicht verarbeiten.",
+        timestamp: new Date()
+      };
+      
+      setChatMessages(prev => [...prev, sigiMessage]);
       
       // Sigi-Antwort vorlesen
       if (data.reply && !isMuted) {
@@ -146,196 +171,163 @@ export default function VoiceAssistant({ isOpen, onClose }: VoiceAssistantProps)
         speechSynthesis.speak(utterance);
       }
       
-      toast({
-        title: "Sigi antwortet",
-        description: isMuted ? "Antwort empfangen (stumm)" : "Hören Sie Sigis Antwort...",
-      });
-      
-      // Nach der Antwort zurücksetzen
-      setTimeout(() => {
-        setRecordedAudio(null);
-        setIsReady(true);
-        setIsProcessing(false);
-      }, 1000);
-      
     } catch (error) {
-      toast({
-        title: "Fehler",
-        description: "Konnte nicht mit Sigi kommunizieren.",
-        variant: "destructive"
-      });
-      setIsProcessing(false);
+      const fallbackMessage: ChatMessage = {
+        id: Date.now() + 1,
+        type: 'ai',
+        message: "Entschuldigung, es gab ein Problem bei der Verbindung. Versuchen Sie es erneut.",
+        timestamp: new Date()
+      };
+      setChatMessages(prev => [...prev, fallbackMessage]);
+    }
+    
+    setIsProcessing(false);
+    setRecordedAudio(null);
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendTextMessage();
     }
   };
 
   const handleClose = () => {
     if (isRecording) {
-      cancelRecording();
+      stopRecording();
     }
     setRecordedAudio(null);
     setIsProcessing(false);
-    setIsReady(true);
-    setSigiResponse("");
+    setCurrentMessage("");
     onClose();
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-lg mx-4 bg-gradient-to-br from-gray-900 via-blue-900/20 to-cyan-900/30 backdrop-blur-xl border border-cyan-400/40 shadow-2xl">
-        <DialogHeader>
-          <DialogTitle className="flex items-center justify-between text-gray-100">
+      <DialogContent className="sm:max-w-2xl mx-4 h-[80vh] flex flex-col bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
+        
+        {/* Header */}
+        <DialogHeader className="flex-shrink-0 pb-4 border-b border-gray-200 dark:border-gray-700">
+          <DialogTitle className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <div className="relative">
-                <img 
-                  src={sigiAvatar} 
-                  className="w-12 h-12 rounded-full border-2 border-cyan-400/50" 
-                  alt="Sigi" 
-                />
-                {isProcessing && (
-                  <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full animate-pulse"></div>
-                )}
-              </div>
-              <div>
-                <span className="text-lg font-bold text-cyan-300">Sigi</span>
-                <p className="text-xs text-gray-400">KI Angel-Assistent</p>
-              </div>
+              <img 
+                src={sigiAvatar} 
+                className="w-8 h-8 rounded-full" 
+                alt="Sigi" 
+              />
+              <span className="text-lg font-semibold text-gray-900 dark:text-white">Sigi</span>
             </div>
-            <Button variant="ghost" size="sm" onClick={handleClose} className="text-gray-300 hover:text-white hover:bg-red-500/20">
-              <X className="w-5 h-5" />
-            </Button>
+            <div className="flex items-center space-x-2">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => setIsMuted(!isMuted)}
+                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+              >
+                {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={handleClose}
+                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
           </DialogTitle>
         </DialogHeader>
         
-        <div className="space-y-6 p-4">
-          {/* Sigi Response Area */}
-          {sigiResponse && (
-            <div className="bg-gray-800/50 rounded-lg p-4 border border-cyan-500/20">
-              <div className="flex items-start space-x-3">
-                <img src={sigiAvatar} className="w-8 h-8 rounded-full" alt="Sigi" />
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-cyan-300 mb-1">Sigi sagt:</p>
-                  <p className="text-gray-200 text-sm leading-relaxed">{sigiResponse}</p>
+        {/* Chat Messages */}
+        <div className="flex-1 overflow-y-auto py-4 space-y-4">
+          {chatMessages.map((msg) => (
+            <div
+              key={msg.id}
+              className={`flex ${msg.type === 'user' ? 'justify-end' : 'justify-start'}`}
+            >
+              <div className={`flex items-start space-x-3 max-w-[80%] ${msg.type === 'user' ? 'flex-row-reverse space-x-reverse' : ''}`}>
+                {msg.type === 'ai' && (
+                  <img src={sigiAvatar} className="w-6 h-6 rounded-full flex-shrink-0 mt-1" alt="Sigi" />
+                )}
+                <div
+                  className={`px-4 py-3 rounded-2xl ${
+                    msg.type === 'user'
+                      ? 'bg-blue-500 text-white'
+                      : 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white'
+                  }`}
+                >
+                  <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.message}</p>
+                </div>
+              </div>
+            </div>
+          ))}
+          
+          {isProcessing && (
+            <div className="flex justify-start">
+              <div className="flex items-start space-x-3 max-w-[80%]">
+                <img src={sigiAvatar} className="w-6 h-6 rounded-full flex-shrink-0 mt-1" alt="Sigi" />
+                <div className="px-4 py-3 rounded-2xl bg-gray-100 dark:bg-gray-800">
+                  <div className="flex items-center space-x-2">
+                    <div className="flex space-x-1">
+                      <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce"></div>
+                      <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                      <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                    </div>
+                    <span className="text-xs text-gray-500">Sigi tippt...</span>
+                  </div>
                 </div>
               </div>
             </div>
           )}
+        </div>
 
-          {/* Voice Status Display */}
-          <div className="text-center">
-            {isRecording && (
-              <div className="animate-pulse">
-                <div className="w-24 h-24 bg-gradient-to-r from-red-500 to-pink-500 rounded-full mx-auto mb-4 flex items-center justify-center shadow-lg shadow-red-500/30">
-                  <Mic className="w-10 h-10 text-white" />
-                </div>
-                <div className="space-y-1">
-                  <p className="text-red-400 font-bold text-lg">🎤 Aufnahme läuft...</p>
-                  <div className="flex justify-center space-x-1">
-                    <div className="w-2 h-6 bg-red-400 rounded animate-pulse"></div>
-                    <div className="w-2 h-8 bg-red-500 rounded animate-pulse delay-75"></div>
-                    <div className="w-2 h-4 bg-red-400 rounded animate-pulse delay-150"></div>
-                    <div className="w-2 h-7 bg-red-500 rounded animate-pulse delay-75"></div>
-                    <div className="w-2 h-5 bg-red-400 rounded animate-pulse"></div>
-                  </div>
-                </div>
-              </div>
-            )}
-            
-            {recordedAudio && !isRecording && !isProcessing && (
-              <div>
-                <div className="w-24 h-24 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full mx-auto mb-4 flex items-center justify-center shadow-lg shadow-green-500/30">
-                  <Send className="w-10 h-10 text-white" />
-                </div>
-                <p className="text-green-400 font-bold text-lg">✅ Bereit zum Senden</p>
-                <p className="text-gray-400 text-sm">Aufnahme erfolgreich</p>
-              </div>
-            )}
-
-            {isProcessing && (
-              <div>
-                <div className="w-24 h-24 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full mx-auto mb-4 flex items-center justify-center shadow-lg shadow-blue-500/30 animate-spin">
-                  <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center">
-                    <div className="w-8 h-8 bg-blue-500 rounded-full"></div>
-                  </div>
-                </div>
-                <p className="text-blue-400 font-bold text-lg">🤖 Sigi denkt nach...</p>
-                <p className="text-gray-400 text-sm">Ihre Anfrage wird verarbeitet</p>
-              </div>
-            )}
-            
-            {!isRecording && !recordedAudio && isReady && !isProcessing && (
-              <div>
-                <div className="w-24 h-24 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full mx-auto mb-4 flex items-center justify-center shadow-lg shadow-cyan-500/30 hover:shadow-cyan-500/50 transition-all duration-300">
-                  <Mic className="w-10 h-10 text-white" />
-                </div>
-                <p className="text-cyan-400 font-bold text-lg">🎯 Bereit für Gespräch</p>
-                <p className="text-gray-400 text-sm">Drücken Sie "Aufnahme" um zu starten</p>
-              </div>
-            )}
-          </div>
-
-          {/* Control Buttons */}
-          <div className="grid grid-cols-2 gap-3">
-            {/* Mikrofon/Stop Button */}
-            {!isRecording ? (
-              <Button
-                onClick={startRecording}
+        {/* Input Area */}
+        <div className="flex-shrink-0 pt-4 border-t border-gray-200 dark:border-gray-700">
+          <div className="flex items-end space-x-2">
+            <div className="flex-1 min-h-[44px] max-h-32 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-800 focus-within:border-blue-500 dark:focus-within:border-blue-400">
+              <textarea
+                value={currentMessage}
+                onChange={(e) => setCurrentMessage(e.target.value)}
+                onKeyDown={handleKeyPress}
+                placeholder="Nachricht an Sigi..."
                 disabled={isProcessing}
-                className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white py-4 font-bold shadow-lg hover:shadow-green-500/25 transition-all duration-300"
-              >
-                <Mic className="w-5 h-5 mr-2" />
-                🎤 Aufnahme
-              </Button>
-            ) : (
-              <Button
-                onClick={stopRecording}
-                className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white py-4 font-bold shadow-lg hover:shadow-red-500/25 transition-all duration-300"
-              >
-                <Square className="w-5 h-5 mr-2" />
-                ⏹️ Stop
-              </Button>
-            )}
-
-            {/* Stumm Button */}
+                className="w-full px-4 py-3 bg-transparent border-none outline-none resize-none text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                rows={1}
+              />
+            </div>
+            
+            {/* Voice Button */}
             <Button
-              onClick={() => setIsMuted(!isMuted)}
-              variant={isMuted ? "destructive" : "outline"}
-              className={`py-4 font-bold transition-all duration-300 ${
-                isMuted 
-                  ? "bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 border-gray-500" 
-                  : "bg-gradient-to-r from-blue-600/20 to-cyan-600/20 border-cyan-500/50 text-cyan-300 hover:bg-cyan-600/30"
+              onClick={isRecording ? stopRecording : startRecording}
+              disabled={isProcessing}
+              size="sm"
+              className={`w-11 h-11 rounded-xl transition-colors ${
+                isRecording 
+                  ? 'bg-red-500 hover:bg-red-600 text-white' 
+                  : 'bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-300'
               }`}
             >
-              {isMuted ? <VolumeX className="w-5 h-5 mr-2" /> : <Volume2 className="w-5 h-5 mr-2" />}
-              {isMuted ? "🔇 Stumm" : "🔊 Laut"}
+              {isRecording ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
             </Button>
-
-            {/* Abbrechen Button */}
+            
+            {/* Send Button */}
             <Button
-              onClick={cancelRecording}
-              variant="outline"
-              disabled={!isRecording && !recordedAudio}
-              className="py-4 border-gray-600 text-gray-300 hover:bg-gray-700/50 font-bold transition-all duration-300"
+              onClick={sendTextMessage}
+              disabled={isProcessing || !currentMessage.trim()}
+              size="sm"
+              className="w-11 h-11 rounded-xl bg-blue-500 hover:bg-blue-600 disabled:bg-gray-300 dark:disabled:bg-gray-600 text-white"
             >
-              <X className="w-5 h-5 mr-2" />
-              ❌ Abbrechen
-            </Button>
-
-            {/* Abschicken Button */}
-            <Button
-              onClick={sendToSigi}
-              disabled={!recordedAudio || isProcessing}
-              className="bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 text-white py-4 font-bold shadow-lg hover:shadow-cyan-500/25 transition-all duration-300 disabled:from-gray-600 disabled:to-gray-700"
-            >
-              <Send className="w-5 h-5 mr-2" />
-              {isProcessing ? "📤 Sende..." : "🚀 An Sigi"}
+              <Send className="w-4 h-4" />
             </Button>
           </div>
-
-          {/* Status Info */}
-          <div className="text-center text-xs text-gray-500 space-y-1">
-            <p>💡 Tipp: Sprechen Sie klar und deutlich für beste Ergebnisse</p>
-            {isMuted && <p>🔇 Audio-Wiedergabe ist deaktiviert</p>}
-          </div>
+          
+          {/* Status */}
+          {isRecording && (
+            <div className="mt-2 flex items-center justify-center space-x-2 text-sm text-red-500">
+              <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+              <span>Aufnahme läuft...</span>
+            </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>
