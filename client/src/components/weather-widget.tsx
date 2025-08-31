@@ -36,45 +36,53 @@ export default function WeatherWidget() {
 
   return (
     <section className="px-4 py-4">
-      <Card className="p-4 bg-gray-900/30 backdrop-blur-sm border border-cyan-500/20">
-        <div className="flex items-center justify-between mb-3">
-          <h3 className="font-semibold text-gray-100">{t("weather.todaysForecast")}</h3>
-          <span className="text-xs text-gray-400">{weather.location}</span>
-        </div>
+      <div className="bg-gray-900/50 backdrop-blur-md border border-cyan-500/30 rounded-xl p-6 relative overflow-hidden">
+        {/* Underwater gradient background */}
+        <div className="absolute inset-0 bg-gradient-to-br from-cyan-900/20 via-blue-900/30 to-teal-900/20 rounded-xl"></div>
         
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-blue-600 rounded-lg flex items-center justify-center">
-              <Sun className="w-6 h-6 text-white" />
+        <div className="relative z-10">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-bold text-lg text-cyan-100">Heutige Angelvorhersage</h3>
+            <span className="text-xs text-cyan-300 bg-cyan-500/20 px-2 py-1 rounded-full">{weather.location}</span>
+          </div>
+          
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center space-x-4">
+              <div className="w-16 h-16 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-full flex items-center justify-center shadow-lg">
+                <Sun className="w-8 h-8 text-white" />
+              </div>
+              <div>
+                <div className="text-3xl font-bold text-white">{weather.temperature}°F</div>
+                <div className="text-sm text-cyan-300">{weather.condition}</div>
+              </div>
             </div>
-            <div>
-              <div className="text-2xl font-bold text-gray-100">{weather.temperature}°F</div>
-              <div className="text-sm text-gray-400">{weather.condition}</div>
+            <div className="text-right bg-gray-800/50 rounded-lg p-3 border border-cyan-500/20">
+              <div className={`text-xl font-bold ${getFishingScoreColor(weather.fishingScore || "Poor")}`}>
+                {weather.fishingScore || "Poor"}
+              </div>
+              <div className="text-xs text-cyan-400">Angelbedingungen</div>
             </div>
           </div>
-          <div className="text-right">
-            <div className={`text-lg font-semibold ${getFishingScoreColor(weather.fishingScore || "Poor")}`}>
-              {weather.fishingScore || "Poor"}
+          
+          <div className="grid grid-cols-3 gap-4 bg-gray-800/30 rounded-lg p-4 border border-cyan-500/20">
+            <div className="text-center">
+              <Wind className="w-5 h-5 text-cyan-400 mx-auto mb-1" />
+              <div className="text-sm font-medium text-white">{weather.windSpeed} mph</div>
+              <div className="text-xs text-cyan-400">Wind</div>
             </div>
-            <div className="text-xs text-gray-400">{t("weather.fishingConditions")}</div>
+            <div className="text-center">
+              <Droplets className="w-5 h-5 text-cyan-400 mx-auto mb-1" />
+              <div className="text-sm font-medium text-white">{weather.humidity}%</div>
+              <div className="text-xs text-cyan-400">Feuchtigkeit</div>
+            </div>
+            <div className="text-center">
+              <Eye className="w-5 h-5 text-cyan-400 mx-auto mb-1" />
+              <div className="text-sm font-medium text-white">{weather.visibility} mi</div>
+              <div className="text-xs text-cyan-400">Sicht</div>
+            </div>
           </div>
         </div>
-        
-        <div className="mt-4 flex items-center justify-between text-sm text-gray-400">
-          <span className="flex items-center">
-            <Wind className="w-4 h-4 mr-1" />
-            {weather.windSpeed} mph
-          </span>
-          <span className="flex items-center">
-            <Droplets className="w-4 h-4 mr-1" />
-            {weather.humidity}%
-          </span>
-          <span className="flex items-center">
-            <Eye className="w-4 h-4 mr-1" />
-            {weather.visibility} mi
-          </span>
-        </div>
-      </Card>
+      </div>
     </section>
   );
 }
