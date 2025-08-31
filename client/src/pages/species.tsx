@@ -4,12 +4,15 @@ import MobileHeader from "@/components/layout/mobile-header";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Search, Fish } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Search, Fish, Eye, Target, MapPin } from "lucide-react";
 import type { FishSpecies } from "@shared/schema";
 
 export default function Species() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedDifficulty, setSelectedDifficulty] = useState<string | null>(null);
+  const [selectedSpecies, setSelectedSpecies] = useState<FishSpecies | null>(null);
 
   const { data: species = [], isLoading } = useQuery<FishSpecies[]>({
     queryKey: ["/api/species"],
@@ -27,7 +30,7 @@ export default function Species() {
   if (isLoading) {
     return (
       <>
-        <MobileHeader title="Fish Species" />
+        <MobileHeader title="Fischarten" />
         <div className="p-4">
           <div className="animate-pulse space-y-4">
             {[1, 2, 3, 4].map((i) => (
@@ -49,7 +52,7 @@ export default function Species() {
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
           <Input 
             type="text" 
-            placeholder="Search species or habitat..."
+            placeholder="Arten oder Lebensraum suchen..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10 bg-gray-800/60 border-cyan-500/30 text-white placeholder-gray-400"
@@ -62,7 +65,7 @@ export default function Species() {
             className="whitespace-nowrap cursor-pointer"
             onClick={() => setSelectedDifficulty(null)}
           >
-            All Levels
+            Alle Level
           </Badge>
           {difficulties.map((difficulty) => (
             <Badge 
@@ -82,13 +85,17 @@ export default function Species() {
         {filteredSpecies.length === 0 ? (
           <Card className="p-8 text-center bg-gray-900/30 backdrop-blur-sm border border-cyan-500/20">
             <Fish className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-            <h3 className="font-semibold text-gray-300 mb-1">No species found</h3>
-            <p className="text-sm text-gray-400">Try adjusting your search or filters</p>
+            <h3 className="font-semibold text-gray-300 mb-1">Keine Arten gefunden</h3>
+            <p className="text-sm text-gray-400">Passen Sie Ihre Suche oder Filter an</p>
           </Card>
         ) : (
           <div className="grid grid-cols-1 gap-4">
             {filteredSpecies.map((fish) => (
-              <Card key={fish.id} className="overflow-hidden bg-gray-900/30 backdrop-blur-sm border border-cyan-500/20">
+              <Card 
+                key={fish.id} 
+                className="overflow-hidden bg-gray-900/30 backdrop-blur-sm border border-cyan-500/20 cursor-pointer hover:border-cyan-400/40 transition-colors"
+                onClick={() => setSelectedSpecies(fish)}
+              >
                 <div className="flex">
                   <div className="w-24 h-24 flex-shrink-0">
                     <img 
@@ -168,6 +175,111 @@ export default function Species() {
           </div>
         )}
       </section>
+
+      {/* Species Detail Modal */}
+      <Dialog open={!!selectedSpecies} onOpenChange={() => setSelectedSpecies(null)}>
+        <DialogContent className="max-w-md bg-gray-900 border-cyan-500/20">
+          {selectedSpecies && (
+            <>
+              <DialogHeader>
+                <DialogTitle className="text-xl text-gray-100">{selectedSpecies.name}</DialogTitle>
+                {selectedSpecies.scientificName && (
+                  <p className="text-sm text-gray-400 italic">{selectedSpecies.scientificName}</p>
+                )}
+              </DialogHeader>
+              
+              <div className="space-y-4">
+                <div className="relative h-48 rounded-lg overflow-hidden">
+                  <img 
+                    src={selectedSpecies.imageUrl || "https://images.unsplash.com/photo-1544551763-46a013bb70d5?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300"} 
+                    alt={selectedSpecies.name}
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute top-2 right-2">
+                    <Badge 
+                      className={`text-xs ${
+                        selectedSpecies.difficulty === "Beginner Friendly" ? "bg-green-500/80 text-white" :
+                        selectedSpecies.difficulty === "Intermediate" ? "bg-yellow-500/80 text-white" :
+                        "bg-red-500/80 text-white"
+                      }`}
+                    >
+                      {selectedSpecies.difficulty}
+                    </Badge>
+                  </div>
+                </div>
+
+                {selectedSpecies.description && (
+                  <div>
+                    <h4 className="font-semibold text-gray-100 mb-2">Beschreibung</h4>
+                    <p className="text-sm text-gray-300">{selectedSpecies.description}</p>
+                  </div>
+                )}
+
+                <div>
+                  <h4 className="font-semibold text-gray-100 mb-2">Lebensraum</h4>
+                  <div className="flex items-center text-sm text-gray-300">
+                    <MapPin className="w-4 h-4 mr-2 text-cyan-400" />
+                    <span>{selectedSpecies.habitat}</span>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  {selectedSpecies.averageWeight && (
+                    <div>
+                      <h5 className="font-medium text-gray-100 text-sm">Durchschnittgewicht</h5>
+                      <p className="text-cyan-300 font-semibold">{selectedSpecies.averageWeight} kg</p>
+                    </div>
+                  )}
+                  {selectedSpecies.averageLength && (
+                    <div>
+                      <h5 className="font-medium text-gray-100 text-sm">Durchschnittlänge</h5>
+                      <p className="text-cyan-300 font-semibold">{selectedSpecies.averageLength} cm</p>
+                    </div>
+                  )}
+                </div>
+
+                {selectedSpecies.commonBaits && selectedSpecies.commonBaits.length > 0 && (
+                  <div>
+                    <h4 className="font-semibold text-gray-100 mb-2">Beliebte Köder</h4>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedSpecies.commonBaits.map((bait) => (
+                        <Badge key={bait} variant="outline" className="text-xs text-cyan-300 border-cyan-500/30">
+                          {bait}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {selectedSpecies.tips && (
+                  <div>
+                    <h4 className="font-semibold text-gray-100 mb-2">Angel-Tipps</h4>
+                    <div className="bg-cyan-500/10 border border-cyan-500/20 rounded-lg p-3">
+                      <p className="text-sm text-gray-300">{selectedSpecies.tips}</p>
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex space-x-2 pt-4">
+                  <Button 
+                    variant="outline" 
+                    className="flex-1 border-cyan-500/30 text-cyan-300 hover:bg-cyan-500/10"
+                    onClick={() => setSelectedSpecies(null)}
+                  >
+                    Schließen
+                  </Button>
+                  <Button 
+                    className="flex-1 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700"
+                  >
+                    <Target className="w-4 h-4 mr-2" />
+                    Zu Zielen hinzufügen
+                  </Button>
+                </div>
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Spacer for bottom navigation */}
       <div className="h-20"></div>

@@ -1,12 +1,62 @@
+import { useState, useRef } from "react";
 import MobileHeader from "@/components/layout/mobile-header";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Camera, Upload, Search } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Camera, Upload, Search, CheckCircle, AlertCircle } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 export default function Identify() {
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [identificationResult, setIdentificationResult] = useState<any>(null);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const { toast } = useToast();
+
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const result = e.target?.result as string;
+        setSelectedImage(result);
+        analyzeImage(result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const analyzeImage = async (imageData: string) => {
+    setIsAnalyzing(true);
+    // Simuliere KI-Analyse
+    setTimeout(() => {
+      const mockResults = [
+        { name: "Regenbogenforelle", confidence: 0.92, habitat: "Süßwasser, kalte Seen" },
+        { name: "Bachforelle", confidence: 0.78, habitat: "Fließgewässer, Bäche" },
+        { name: "Karpfen", confidence: 0.45, habitat: "Stehende Gewässer" }
+      ];
+      setIdentificationResult(mockResults);
+      setIsAnalyzing(false);
+      toast({
+        title: "Identifikation abgeschlossen!",
+        description: "Die KI hat mögliche Übereinstimmungen gefunden."
+      });
+    }, 2000);
+  };
+
+  const handleCameraCapture = () => {
+    cameraInputRef.current?.click();
+  };
+
+  const handleUploadClick = () => {
+    fileInputRef.current?.click();
+  };
   return (
     <>
-      <MobileHeader title="Fish Identification" />
+      <MobileHeader title="Fisch-Identifikation" />
       
       {/* Camera Section */}
       <section className="px-4 py-6">
@@ -14,17 +64,41 @@ export default function Identify() {
           <div className="w-20 h-20 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-full mx-auto mb-4 flex items-center justify-center">
             <Camera className="w-10 h-10 text-white" />
           </div>
-          <h3 className="text-xl font-semibold text-gray-100 mb-2">Identify Your Fish</h3>
-          <p className="text-gray-300 mb-6">Take a photo or upload an image to get instant fish species identification</p>
+          <h3 className="text-xl font-semibold text-gray-100 mb-2">Identifizieren Sie Ihren Fisch</h3>
+          <p className="text-gray-300 mb-6">Machen Sie ein Foto oder laden Sie ein Bild hoch für die sofortige Fisch-Identifikation</p>
           
           <div className="space-y-3">
-            <Button className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700">
+            <input
+              type="file"
+              ref={cameraInputRef}
+              accept="image/*"
+              capture="environment"
+              onChange={handleImageUpload}
+              className="hidden"
+            />
+            <input
+              type="file"
+              ref={fileInputRef}
+              accept="image/*"
+              onChange={handleImageUpload}
+              className="hidden"
+            />
+            <Button 
+              className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700"
+              onClick={handleCameraCapture}
+              disabled={isAnalyzing}
+            >
               <Camera className="w-5 h-5 mr-2" />
-              Take Photo
+              Foto aufnehmen
             </Button>
-            <Button variant="outline" className="w-full border-cyan-500/30 text-cyan-300 hover:bg-cyan-500/10">
+            <Button 
+              variant="outline" 
+              className="w-full border-cyan-500/30 text-cyan-300 hover:bg-cyan-500/10"
+              onClick={handleUploadClick}
+              disabled={isAnalyzing}
+            >
               <Upload className="w-5 h-5 mr-2" />
-              Upload from Gallery
+              Aus Galerie hochladen
             </Button>
           </div>
         </Card>
@@ -33,13 +107,15 @@ export default function Identify() {
       {/* Quick Identification */}
       <section className="px-4 py-2">
         <Card className="p-4 bg-gray-900/30 backdrop-blur-sm border border-cyan-500/20">
-          <h4 className="font-semibold text-gray-100 mb-3">Quick Species Search</h4>
+          <h4 className="font-semibold text-gray-100 mb-3">Schnelle Arten-Suche</h4>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <input 
+            <Input 
               type="text" 
-              placeholder="Search by name or characteristics..."
-              className="w-full pl-10 pr-4 py-2 bg-gray-800/60 border border-cyan-500/30 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+              placeholder="Nach Name oder Eigenschaften suchen..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 bg-gray-800/60 border-cyan-500/30 text-white placeholder-gray-400"
             />
           </div>
         </Card>
@@ -47,7 +123,7 @@ export default function Identify() {
 
       {/* Identification Tips */}
       <section className="px-4 py-6">
-        <h3 className="text-lg font-semibold text-gray-100 mb-4">Photography Tips</h3>
+        <h3 className="text-lg font-semibold text-gray-100 mb-4">Fotografie-Tipps</h3>
         <div className="space-y-3">
           <Card className="p-4 bg-gray-900/30 backdrop-blur-sm border border-cyan-500/20">
             <div className="flex items-start space-x-3">
@@ -55,8 +131,8 @@ export default function Identify() {
                 <span className="text-cyan-400 font-semibold text-sm">1</span>
               </div>
               <div>
-                <h4 className="font-medium text-gray-100">Good Lighting</h4>
-                <p className="text-sm text-gray-300">Take photos in natural daylight for best results</p>
+                <h4 className="font-medium text-gray-100">Gute Beleuchtung</h4>
+                <p className="text-sm text-gray-300">Machen Sie Fotos bei natürlichem Tageslicht für beste Ergebnisse</p>
               </div>
             </div>
           </Card>
@@ -67,8 +143,8 @@ export default function Identify() {
                 <span className="text-cyan-400 font-semibold text-sm">2</span>
               </div>
               <div>
-                <h4 className="font-medium text-gray-100">Full Body Shot</h4>
-                <p className="text-sm text-gray-300">Capture the entire fish including fins and tail</p>
+                <h4 className="font-medium text-gray-100">Ganzkörper-Aufnahme</h4>
+                <p className="text-sm text-gray-300">Erfassen Sie den ganzen Fisch einschließlich Flossen und Schwanz</p>
               </div>
             </div>
           </Card>
