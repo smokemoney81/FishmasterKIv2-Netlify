@@ -33,37 +33,37 @@ function Router() {
         </div>
       </Route>
       <Route path="/map">
-        <div className="min-h-screen bg-gray-900" style={{backgroundImage: 'url(/icons/background.jpg)', backgroundSize: 'cover', backgroundPosition: 'center', backgroundAttachment: 'fixed'}}>
+        <div className="min-h-screen bg-background">
           <Map />
           <BottomNavigation />
         </div>
       </Route>
       <Route path="/identify">
-        <div className="min-h-screen bg-gray-900" style={{backgroundImage: 'url(/icons/background.jpg)', backgroundSize: 'cover', backgroundPosition: 'center', backgroundAttachment: 'fixed'}}>
+        <div className="min-h-screen bg-background">
           <Identify />
           <BottomNavigation />
         </div>
       </Route>
       <Route path="/species">
-        <div className="min-h-screen bg-gray-900" style={{backgroundImage: 'url(/icons/background.jpg)', backgroundSize: 'cover', backgroundPosition: 'center', backgroundAttachment: 'fixed'}}>
+        <div className="min-h-screen bg-background">
           <Species />
           <BottomNavigation />
         </div>
       </Route>
       <Route path="/logbook">
-        <div className="min-h-screen bg-gray-900" style={{backgroundImage: 'url(/icons/background.jpg)', backgroundSize: 'cover', backgroundPosition: 'center', backgroundAttachment: 'fixed'}}>
+        <div className="min-h-screen bg-background">
           <Logbook />
           <BottomNavigation />
         </div>
       </Route>
       <Route path="/tips">
-        <div className="min-h-screen bg-gray-900" style={{backgroundImage: 'url(/icons/background.jpg)', backgroundSize: 'cover', backgroundPosition: 'center', backgroundAttachment: 'fixed'}}>
+        <div className="min-h-screen bg-background">
           <Tips />
           <BottomNavigation />
         </div>
       </Route>
       <Route path="/profile">
-        <div className="min-h-screen bg-gray-900" style={{backgroundImage: 'url(/icons/background.jpg)', backgroundSize: 'cover', backgroundPosition: 'center', backgroundAttachment: 'fixed'}}>
+        <div className="min-h-screen bg-background">
           <Profile />
           <BottomNavigation />
         </div>
