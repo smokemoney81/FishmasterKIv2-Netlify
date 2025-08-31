@@ -2,8 +2,126 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { ObjectStorageService } from "./objectStorage";
-import { insertCatchSchema, insertUserSchema, insertLogbookSchema } from "@shared/schema";
+import { insertCatchSchema, insertUserSchema, insertLogbookSchema, type Weather } from "@shared/schema";
 import { z } from "zod";
+
+// Open-Meteo Weather API Integration
+async function fetchRealWeatherData(latitude: number, longitude: number): Promise<Weather | null> {
+  try {
+    const apiUrl = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,wind_speed_10m,weather_code,visibility&timezone=auto`;
+    
+    const response = await fetch(apiUrl);
+    const data = await response.json();
+    
+    if (!data.current) {
+      return null;
+    }
+    
+    const current = data.current;
+    
+    // Weather codes zur Textbeschreibung umwandeln
+    const weatherCondition = getWeatherCondition(current.weather_code);
+    
+    // Fishing Score basierend auf Wetterbedingungen berechnen
+    const fishingScore = calculateFishingScore(
+      current.temperature_2m,
+      current.wind_speed_10m,
+      current.relative_humidity_2m,
+      current.weather_code
+    );
+    
+    // Standortname aus Koordinaten ermitteln (vereinfacht)
+    const locationName = await getLocationName(latitude, longitude);
+    
+    return {
+      id: `weather-${Date.now()}`,
+      location: locationName,
+      latitude,
+      longitude,
+      temperature: Math.round(current.temperature_2m * 9/5 + 32), // Celsius zu Fahrenheit
+      condition: weatherCondition,
+      windSpeed: Math.round(current.wind_speed_10m * 0.621371), // km/h zu mph
+      humidity: current.relative_humidity_2m,
+      visibility: current.visibility ? Math.round(current.visibility / 1609.34) : 10, // meter zu miles
+      fishingScore,
+      timestamp: new Date()
+    };
+    
+  } catch (error) {
+    console.error("Open-Meteo API error:", error);
+    return null;
+  }
+}
+
+function getWeatherCondition(weatherCode: number): string {
+  // WMO Weather interpretation codes
+  if (weatherCode === 0) return "Clear sky";
+  if (weatherCode <= 3) return "Partly cloudy";
+  if (weatherCode <= 48) return "Foggy";
+  if (weatherCode <= 57) return "Drizzle";
+  if (weatherCode <= 67) return "Rain";
+  if (weatherCode <= 77) return "Snow";
+  if (weatherCode <= 82) return "Rain showers";
+  if (weatherCode <= 86) return "Snow showers";
+  if (weatherCode <= 99) return "Thunderstorm";
+  return "Unknown";
+}
+
+function calculateFishingScore(temp: number, windSpeed: number, humidity: number, weatherCode: number): string {
+  let score = 50; // Basis-Score
+  
+  // Temperatur-Bewertung (ideal: 15-25°C)
+  const tempC = temp;
+  if (tempC >= 15 && tempC <= 25) score += 20;
+  else if (tempC >= 10 && tempC <= 30) score += 10;
+  else if (tempC < 5 || tempC > 35) score -= 20;
+  
+  // Wind-Bewertung (ideal: 5-15 km/h)
+  if (windSpeed >= 5 && windSpeed <= 15) score += 15;
+  else if (windSpeed <= 25) score += 5;
+  else if (windSpeed > 30) score -= 15;
+  
+  // Luftfeuchtigkeit (ideal: 60-80%)
+  if (humidity >= 60 && humidity <= 80) score += 10;
+  else if (humidity < 40 || humidity > 90) score -= 10;
+  
+  // Wetter-Bedingungen
+  if (weatherCode === 0 || weatherCode <= 3) score += 15; // Klar oder leicht bewölkt
+  else if (weatherCode >= 80) score -= 20; // Starker Regen/Gewitter
+  else if (weatherCode >= 51) score -= 10; // Regen
+  
+  // Score in Kategorien umwandeln
+  if (score >= 80) return "Excellent";
+  if (score >= 65) return "Good";
+  if (score >= 45) return "Fair";
+  return "Poor";
+}
+
+async function getLocationName(latitude: number, longitude: number): Promise<string> {
+  try {
+    // Vereinfachte Reverse-Geocoding mit Nominatim (kostenlos)
+    const response = await fetch(
+      `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=10&addressdetails=1`,
+      {
+        headers: {
+          'User-Agent': 'FishMasterKI/1.0'
+        }
+      }
+    );
+    
+    const data = await response.json();
+    
+    if (data.address) {
+      const { city, town, village, county, state } = data.address;
+      const location = city || town || village || county;
+      return location && state ? `${location}, ${state}` : `${latitude.toFixed(2)}, ${longitude.toFixed(2)}`;
+    }
+    
+    return `${latitude.toFixed(2)}, ${longitude.toFixed(2)}`;
+  } catch (error) {
+    return `${latitude.toFixed(2)}, ${longitude.toFixed(2)}`;
+  }
+}
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Users
@@ -142,24 +260,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Weather
   app.get("/api/weather", async (req, res) => {
+    const { lat, lng } = req.query;
+    
+    if (!lat || !lng) {
+      return res.status(400).json({ error: "Latitude and longitude are required" });
+    }
+    
+    const latitude = parseFloat(lat as string);
+    const longitude = parseFloat(lng as string);
+    
     try {
-      const { lat, lng } = req.query;
-      if (!lat || !lng) {
-        return res.status(400).json({ error: "Latitude and longitude are required" });
-      }
-      
-      const weather = await storage.getWeatherByLocation(
-        parseFloat(lat as string),
-        parseFloat(lng as string)
-      );
+      // Hole echte Wetterdaten von Open-Meteo API
+      const weather = await fetchRealWeatherData(latitude, longitude);
       
       if (!weather) {
-        return res.status(404).json({ error: "Weather data not found" });
+        // Fallback zu Mock-Daten wenn API nicht verfügbar
+        const fallbackWeather = await storage.getWeatherByLocation(latitude, longitude);
+        return res.json(fallbackWeather);
       }
       
       res.json(weather);
     } catch (error) {
-      res.status(500).json({ error: "Failed to fetch weather data" });
+      console.error("Weather API error:", error);
+      // Fallback zu Mock-Daten bei Fehlern
+      const fallbackWeather = await storage.getWeatherByLocation(latitude, longitude);
+      res.json(fallbackWeather);
     }
   });
 
