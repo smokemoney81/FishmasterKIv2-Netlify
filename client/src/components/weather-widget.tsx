@@ -53,8 +53,8 @@ export default function WeatherWidget() {
             </div>
           </div>
           <div className="text-right">
-            <div className={`text-lg font-semibold ${getFishingScoreColor(weather.fishingScore)}`}>
-              {weather.fishingScore}
+            <div className={`text-lg font-semibold ${getFishingScoreColor(weather.fishingScore || "Poor")}`}>
+              {weather.fishingScore || "Poor"}
             </div>
             <div className="text-xs text-gray-400">{t("weather.fishingConditions")}</div>
           </div>

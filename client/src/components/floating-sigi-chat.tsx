@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { X, MessageCircle, Send } from "lucide-react";
+import { X, MessageCircle, Send, Mic, MicOff, Volume2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import sigiAvatar from "@assets/flux-1-kontext-dev_Stell_die_in_einer_C_1756603191003.png";
 
@@ -25,12 +25,22 @@ export default function FloatingSigiChat() {
   ]);
   const [currentMessage, setCurrentMessage] = useState("");
   const [isTyping, setIsTyping] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const [isPlayingAudio, setIsPlayingAudio] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
 
   // Hole Kontext-Daten für Sigi
   const { data: catches = [] } = useQuery({ queryKey: ['/api/catches'] });
   const { data: spots = [] } = useQuery({ queryKey: ['/api/spots'] });
-  const { data: weather } = useQuery({ queryKey: ['/api/weather'] });
+  const { data: weather } = useQuery({ 
+    queryKey: ['/api/weather'], 
+    queryFn: async () => {
+      const response = await fetch("/api/weather?lat=39.0968&lng=-120.0324");
+      return response.json();
+    }
+  });
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -42,18 +52,19 @@ export default function FloatingSigiChat() {
     }
   }, [chatMessages, isOpen]);
 
-  const sendSigiMessage = async () => {
-    if (!currentMessage.trim()) return;
+  const sendSigiMessage = async (messageText?: string) => {
+    const textToSend = messageText || currentMessage.trim();
+    if (!textToSend) return;
     
     const userMessage: ChatMessage = {
       id: Date.now(),
       type: 'user',
-      message: currentMessage,
+      message: textToSend,
       timestamp: new Date()
     };
     
     setChatMessages(prev => [...prev, userMessage]);
-    setCurrentMessage('');
+    if (!messageText) setCurrentMessage(''); // Nur leeren wenn von UI getippt
     setIsTyping(true);
     
     // Kontext für Sigi zusammenstellen
@@ -96,6 +107,13 @@ export default function FloatingSigiChat() {
       
       setChatMessages(prev => [...prev, sigiResponse]);
       
+      // Automatisch Sigi-Antwort abspielen
+      if (data.reply) {
+        setTimeout(() => {
+          speakSigiResponse(data.reply);
+        }, 500);
+      }
+      
     } catch (error) {
       // Fallback-Antwort von Sigi
       const fallbackResponse: ChatMessage = {
@@ -109,6 +127,116 @@ export default function FloatingSigiChat() {
     }
     
     setIsTyping(false);
+  };
+
+  // Audio-Aufnahme starten
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = mediaRecorder;
+      audioChunksRef.current = [];
+
+      mediaRecorder.ondataavailable = (event) => {
+        audioChunksRef.current.push(event.data);
+      };
+
+      mediaRecorder.onstop = async () => {
+        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/wav' });
+        await processAudioInput(audioBlob);
+        stream.getTracks().forEach(track => track.stop());
+      };
+
+      mediaRecorder.start();
+      setIsRecording(true);
+    } catch (error) {
+      console.error('Error starting recording:', error);
+    }
+  };
+
+  // Audio-Aufnahme stoppen
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+    }
+  };
+
+  // Audio verarbeiten und transkribieren
+  const processAudioInput = async (audioBlob: Blob) => {
+    try {
+      setIsTyping(true);
+      
+      // Audio zu Base64 konvertieren für API-Upload
+      const arrayBuffer = await audioBlob.arrayBuffer();
+      
+      // Transkription von OpenAI Whisper
+      const transcribeResponse = await fetch('/api/sigi/transcribe', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/octet-stream',
+        },
+        body: arrayBuffer
+      });
+      
+      if (!transcribeResponse.ok) {
+        throw new Error('Transcription failed');
+      }
+      
+      const { transcript } = await transcribeResponse.json();
+      
+      if (transcript && transcript.trim().length > 0) {
+        setCurrentMessage(transcript);
+        // Automatisch Text-Nachricht senden
+        setTimeout(() => {
+          sendSigiMessage(transcript);
+        }, 500);
+      }
+      
+    } catch (error) {
+      console.error('Audio processing error:', error);
+    } finally {
+      setIsTyping(false);
+    }
+  };
+
+  // Text-zu-Sprache für Sigi-Antworten
+  const speakSigiResponse = async (text: string) => {
+    try {
+      setIsPlayingAudio(true);
+      
+      const response = await fetch('/api/sigi/speak', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ text })
+      });
+      
+      if (!response.ok) {
+        throw new Error('Speech generation failed');
+      }
+      
+      const audioBlob = await response.blob();
+      const audioUrl = URL.createObjectURL(audioBlob);
+      const audio = new Audio(audioUrl);
+      
+      audio.onended = () => {
+        setIsPlayingAudio(false);
+        URL.revokeObjectURL(audioUrl);
+      };
+      
+      audio.onerror = () => {
+        setIsPlayingAudio(false);
+        URL.revokeObjectURL(audioUrl);
+      };
+      
+      await audio.play();
+      
+    } catch (error) {
+      console.error('Speech playback error:', error);
+      setIsPlayingAudio(false);
+    }
   };
 
   const generateSigiFallback = (message: string) => {
@@ -230,14 +358,34 @@ export default function FloatingSigiChat() {
                 value={currentMessage}
                 onChange={(e) => setCurrentMessage(e.target.value)}
                 onKeyPress={handleKeyPress}
-                placeholder="Fragen Sie Sigi..."
-                disabled={isTyping}
+                placeholder={isRecording ? "🎤 Aufnahme läuft..." : "Fragen Sie Sigi..."}
+                disabled={isTyping || isRecording}
                 className="flex-1 bg-gray-800/60 border border-cyan-500/30 rounded-lg px-3 py-2 text-white placeholder-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 backdrop-blur-sm"
                 data-testid="input-floating-sigi-message"
               />
+              
+              {/* Audio Record Button */}
               <Button
-                onClick={sendSigiMessage}
-                disabled={isTyping || !currentMessage.trim()}
+                onClick={isRecording ? stopRecording : startRecording}
+                disabled={isTyping}
+                size="icon"
+                className={`w-10 h-10 rounded-lg transition-all ${
+                  isRecording 
+                    ? 'bg-red-500 hover:bg-red-600 animate-pulse' 
+                    : 'bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600'
+                }`}
+                data-testid="button-record-audio"
+              >
+                {isRecording ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+              </Button>
+              
+              {/* Text Send Button */}
+              <Button
+                onClick={(e) => {
+                  e.preventDefault();
+                  sendSigiMessage();
+                }}
+                disabled={isTyping || !currentMessage.trim() || isRecording}
                 size="icon"
                 className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 disabled:opacity-50 w-10 h-10 rounded-lg"
                 data-testid="button-send-floating-message"
@@ -245,6 +393,24 @@ export default function FloatingSigiChat() {
                 <Send className="w-4 h-4" />
               </Button>
             </div>
+            
+            {/* Audio Status */}
+            {(isRecording || isPlayingAudio) && (
+              <div className="mt-2 flex items-center gap-2 text-xs text-cyan-300">
+                {isRecording && (
+                  <>
+                    <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                    <span>Aufnahme läuft... Drücken Sie den Mikrofon-Button zum Stoppen</span>
+                  </>
+                )}
+                {isPlayingAudio && (
+                  <>
+                    <Volume2 className="w-3 h-3 animate-pulse" />
+                    <span>Sigi spricht...</span>
+                  </>
+                )}
+              </div>
+            )}
           </div>
         </div>
       )}

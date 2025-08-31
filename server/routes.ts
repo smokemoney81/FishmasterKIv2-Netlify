@@ -4,6 +4,7 @@ import { storage } from "./storage";
 import { ObjectStorageService } from "./objectStorage";
 import { insertCatchSchema, insertUserSchema, insertLogbookSchema, type Weather } from "@shared/schema";
 import { z } from "zod";
+import FormData from "form-data";
 
 // Open-Meteo Weather API Integration
 async function fetchRealWeatherData(latitude: number, longitude: number): Promise<Weather | null> {
@@ -120,6 +121,78 @@ async function getLocationName(latitude: number, longitude: number): Promise<str
     return `${latitude.toFixed(2)}, ${longitude.toFixed(2)}`;
   } catch (error) {
     return `${latitude.toFixed(2)}, ${longitude.toFixed(2)}`;
+  }
+}
+
+// OpenAI Speech Functions for Sigi
+async function transcribeWithWhisper(audioBuffer: Buffer): Promise<string> {
+  try {
+    const openaiApiKey = process.env.OPENAI_API_KEY;
+    if (!openaiApiKey) {
+      throw new Error('OPENAI_API_KEY nicht konfiguriert');
+    }
+
+    const formData = new FormData();
+    formData.append('file', audioBuffer, {
+      filename: 'audio.wav',
+      contentType: 'audio/wav'
+    });
+    formData.append('model', 'whisper-1');
+    formData.append('language', 'de');
+
+    const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${openaiApiKey}`,
+        ...formData.getHeaders()
+      },
+      body: formData
+    });
+
+    if (!response.ok) {
+      throw new Error(`Whisper API error: ${response.status} ${response.statusText}`);
+    }
+
+    const result = await response.json();
+    return result.text;
+
+  } catch (error) {
+    console.error('Whisper transcription error:', error);
+    throw error;
+  }
+}
+
+async function generateSpeechWithOpenAI(text: string): Promise<Buffer> {
+  try {
+    const openaiApiKey = process.env.OPENAI_API_KEY;
+    if (!openaiApiKey) {
+      throw new Error('OPENAI_API_KEY nicht konfiguriert');
+    }
+
+    const response = await fetch('https://api.openai.com/v1/audio/speech', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${openaiApiKey}`
+      },
+      body: JSON.stringify({
+        model: 'tts-1',
+        input: text,
+        voice: 'alloy',
+        speed: 1.0,
+        response_format: 'mp3'
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`OpenAI TTS API error: ${response.status} ${response.statusText}`);
+    }
+
+    return Buffer.from(await response.arrayBuffer());
+
+  } catch (error) {
+    console.error('OpenAI speech generation error:', error);
+    throw error;
   }
 }
 
@@ -255,6 +328,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(tip);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch tip" });
+    }
+  });
+
+  // Audio transcription endpoint for Sigi
+  app.post("/api/sigi/transcribe", async (req, res) => {
+    try {
+      const audioBuffer = req.body;
+      const transcription = await transcribeWithWhisper(audioBuffer);
+      res.json({ transcript: transcription });
+    } catch (error) {
+      console.error('Transcription error:', error);
+      res.status(500).json({ error: 'Transcription failed' });
+    }
+  });
+
+  // Text-to-speech endpoint for Sigi
+  app.post("/api/sigi/speak", async (req, res) => {
+    try {
+      const { text } = req.body;
+      const audioBuffer = await generateSpeechWithOpenAI(text);
+      
+      res.setHeader('Content-Type', 'audio/mpeg');
+      res.setHeader('Content-Length', audioBuffer.length);
+      res.send(audioBuffer);
+    } catch (error) {
+      console.error('Speech generation error:', error);
+      res.status(500).json({ error: 'Speech generation failed' });
     }
   });
 
