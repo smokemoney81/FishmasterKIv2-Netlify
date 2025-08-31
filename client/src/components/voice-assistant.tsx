@@ -1,9 +1,11 @@
+
 import React, { useState, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { X, Mic, MicOff, Send, Square } from "lucide-react";
+import { X, Mic, MicOff, Send, Square, Volume2, VolumeX } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
+import { useLanguage } from "@/contexts/language-context";
 import sigiAvatar from "@assets/flux-1-kontext-dev_Stell_die_in_einer_C_1756603191003.png";
 
 interface VoiceAssistantProps {
@@ -13,11 +15,13 @@ interface VoiceAssistantProps {
 
 export default function VoiceAssistant({ isOpen, onClose }: VoiceAssistantProps) {
   const { toast } = useToast();
+  const { t } = useLanguage();
   const [isRecording, setIsRecording] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [recordedAudio, setRecordedAudio] = useState<Blob | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [isReady, setIsReady] = useState(true); // Bereit für Interaktion
+  const [isReady, setIsReady] = useState(true);
+  const [sigiResponse, setSigiResponse] = useState<string>("");
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
 
@@ -53,6 +57,7 @@ export default function VoiceAssistant({ isOpen, onClose }: VoiceAssistantProps)
       mediaRecorderRef.current.start();
       setIsRecording(true);
       setIsReady(false);
+      setSigiResponse("");
       
       toast({
         title: "Aufnahme gestartet",
@@ -86,7 +91,8 @@ export default function VoiceAssistant({ isOpen, onClose }: VoiceAssistantProps)
     }
     setRecordedAudio(null);
     audioChunksRef.current = [];
-    setIsReady(true); // Zurück zum bereit-Zustand
+    setIsReady(true);
+    setSigiResponse("");
     
     toast({
       title: "Aufnahme abgebrochen",
@@ -100,11 +106,8 @@ export default function VoiceAssistant({ isOpen, onClose }: VoiceAssistantProps)
     setIsProcessing(true);
     
     try {
-      // Hier würde normalerweise die Spracherkennung stattfinden
-      // Für Demo verwenden wir einen Fallback-Text
       const demoMessage = "Hallo Sigi, wie ist das Wetter heute zum Angeln?";
       
-      // Kontext für Sigi zusammenstellen
       const catchesArray = Array.isArray(catches) ? catches : [];
       const spotsArray = Array.isArray(spots) ? spots : [];
       
@@ -132,11 +135,14 @@ export default function VoiceAssistant({ isOpen, onClose }: VoiceAssistantProps)
       });
       
       const data = await response.json();
+      setSigiResponse(data.reply || "Entschuldigung, ich konnte Ihre Anfrage nicht verarbeiten.");
       
       // Sigi-Antwort vorlesen
       if (data.reply && !isMuted) {
         const utterance = new SpeechSynthesisUtterance(data.reply);
         utterance.lang = 'de-DE';
+        utterance.rate = 0.9;
+        utterance.pitch = 1.1;
         speechSynthesis.speak(utterance);
       }
       
@@ -150,7 +156,7 @@ export default function VoiceAssistant({ isOpen, onClose }: VoiceAssistantProps)
         setRecordedAudio(null);
         setIsReady(true);
         setIsProcessing(false);
-      }, 3000);
+      }, 1000);
       
     } catch (error) {
       toast({
@@ -158,7 +164,6 @@ export default function VoiceAssistant({ isOpen, onClose }: VoiceAssistantProps)
         description: "Konnte nicht mit Sigi kommunizieren.",
         variant: "destructive"
       });
-    } finally {
       setIsProcessing(false);
     }
   };
@@ -169,57 +174,101 @@ export default function VoiceAssistant({ isOpen, onClose }: VoiceAssistantProps)
     }
     setRecordedAudio(null);
     setIsProcessing(false);
-    setIsReady(true); // Zurück zum Ausgangszustand
+    setIsReady(true);
+    setSigiResponse("");
     onClose();
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-md mx-4 bg-gray-900/95 backdrop-blur-md border border-cyan-500/30">
+      <DialogContent className="sm:max-w-lg mx-4 bg-gradient-to-br from-gray-900 via-blue-900/20 to-cyan-900/30 backdrop-blur-xl border border-cyan-400/40 shadow-2xl">
         <DialogHeader>
           <DialogTitle className="flex items-center justify-between text-gray-100">
             <div className="flex items-center space-x-3">
-              <img 
-                src={sigiAvatar} 
-                className="w-10 h-10 rounded-full" 
-                alt="Sigi" 
-              />
-              <span>Sigi Sprach-Assistent</span>
+              <div className="relative">
+                <img 
+                  src={sigiAvatar} 
+                  className="w-12 h-12 rounded-full border-2 border-cyan-400/50" 
+                  alt="Sigi" 
+                />
+                {isProcessing && (
+                  <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full animate-pulse"></div>
+                )}
+              </div>
+              <div>
+                <span className="text-lg font-bold text-cyan-300">Sigi</span>
+                <p className="text-xs text-gray-400">KI Angel-Assistent</p>
+              </div>
             </div>
-            <Button variant="ghost" size="sm" onClick={handleClose} className="text-gray-300 hover:text-white">
-              <X className="w-4 h-4" />
+            <Button variant="ghost" size="sm" onClick={handleClose} className="text-gray-300 hover:text-white hover:bg-red-500/20">
+              <X className="w-5 h-5" />
             </Button>
           </DialogTitle>
         </DialogHeader>
         
         <div className="space-y-6 p-4">
-          {/* Aufnahme-Status */}
+          {/* Sigi Response Area */}
+          {sigiResponse && (
+            <div className="bg-gray-800/50 rounded-lg p-4 border border-cyan-500/20">
+              <div className="flex items-start space-x-3">
+                <img src={sigiAvatar} className="w-8 h-8 rounded-full" alt="Sigi" />
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-cyan-300 mb-1">Sigi sagt:</p>
+                  <p className="text-gray-200 text-sm leading-relaxed">{sigiResponse}</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Voice Status Display */}
           <div className="text-center">
             {isRecording && (
               <div className="animate-pulse">
-                <div className="w-20 h-20 bg-red-500 rounded-full mx-auto mb-4 flex items-center justify-center">
-                  <Mic className="w-8 h-8 text-white" />
+                <div className="w-24 h-24 bg-gradient-to-r from-red-500 to-pink-500 rounded-full mx-auto mb-4 flex items-center justify-center shadow-lg shadow-red-500/30">
+                  <Mic className="w-10 h-10 text-white" />
                 </div>
-                <p className="text-red-400 font-medium">Aufnahme läuft...</p>
+                <div className="space-y-1">
+                  <p className="text-red-400 font-bold text-lg">🎤 Aufnahme läuft...</p>
+                  <div className="flex justify-center space-x-1">
+                    <div className="w-2 h-6 bg-red-400 rounded animate-pulse"></div>
+                    <div className="w-2 h-8 bg-red-500 rounded animate-pulse delay-75"></div>
+                    <div className="w-2 h-4 bg-red-400 rounded animate-pulse delay-150"></div>
+                    <div className="w-2 h-7 bg-red-500 rounded animate-pulse delay-75"></div>
+                    <div className="w-2 h-5 bg-red-400 rounded animate-pulse"></div>
+                  </div>
+                </div>
               </div>
             )}
             
-            {recordedAudio && !isRecording && (
+            {recordedAudio && !isRecording && !isProcessing && (
               <div>
-                <div className="w-20 h-20 bg-green-500 rounded-full mx-auto mb-4 flex items-center justify-center">
-                  <Send className="w-8 h-8 text-white" />
+                <div className="w-24 h-24 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full mx-auto mb-4 flex items-center justify-center shadow-lg shadow-green-500/30">
+                  <Send className="w-10 h-10 text-white" />
                 </div>
-                <p className="text-green-400 font-medium">Bereit zum Senden</p>
+                <p className="text-green-400 font-bold text-lg">✅ Bereit zum Senden</p>
+                <p className="text-gray-400 text-sm">Aufnahme erfolgreich</p>
+              </div>
+            )}
+
+            {isProcessing && (
+              <div>
+                <div className="w-24 h-24 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full mx-auto mb-4 flex items-center justify-center shadow-lg shadow-blue-500/30 animate-spin">
+                  <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center">
+                    <div className="w-8 h-8 bg-blue-500 rounded-full"></div>
+                  </div>
+                </div>
+                <p className="text-blue-400 font-bold text-lg">🤖 Sigi denkt nach...</p>
+                <p className="text-gray-400 text-sm">Ihre Anfrage wird verarbeitet</p>
               </div>
             )}
             
-            {!isRecording && !recordedAudio && isReady && (
+            {!isRecording && !recordedAudio && isReady && !isProcessing && (
               <div>
-                <div className="w-20 h-20 bg-cyan-500 rounded-full mx-auto mb-4 flex items-center justify-center">
-                  <Mic className="w-8 h-8 text-white" />
+                <div className="w-24 h-24 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full mx-auto mb-4 flex items-center justify-center shadow-lg shadow-cyan-500/30 hover:shadow-cyan-500/50 transition-all duration-300">
+                  <Mic className="w-10 h-10 text-white" />
                 </div>
-                <p className="text-cyan-400 font-medium">Bereit - Drücken Sie "Aufnahme"</p>
-                <p className="text-gray-500 text-sm mt-2">Klicken Sie auf Aufnahme um zu starten</p>
+                <p className="text-cyan-400 font-bold text-lg">🎯 Bereit für Gespräch</p>
+                <p className="text-gray-400 text-sm">Drücken Sie "Aufnahme" um zu starten</p>
               </div>
             )}
           </div>
@@ -231,18 +280,18 @@ export default function VoiceAssistant({ isOpen, onClose }: VoiceAssistantProps)
               <Button
                 onClick={startRecording}
                 disabled={isProcessing}
-                className="bg-green-600 hover:bg-green-700 text-white py-3"
+                className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white py-4 font-bold shadow-lg hover:shadow-green-500/25 transition-all duration-300"
               >
                 <Mic className="w-5 h-5 mr-2" />
-                Aufnahme
+                🎤 Aufnahme
               </Button>
             ) : (
               <Button
                 onClick={stopRecording}
-                className="bg-red-600 hover:bg-red-700 text-white py-3"
+                className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white py-4 font-bold shadow-lg hover:shadow-red-500/25 transition-all duration-300"
               >
                 <Square className="w-5 h-5 mr-2" />
-                Stop
+                ⏹️ Stop
               </Button>
             )}
 
@@ -250,10 +299,14 @@ export default function VoiceAssistant({ isOpen, onClose }: VoiceAssistantProps)
             <Button
               onClick={() => setIsMuted(!isMuted)}
               variant={isMuted ? "destructive" : "outline"}
-              className="py-3"
+              className={`py-4 font-bold transition-all duration-300 ${
+                isMuted 
+                  ? "bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 border-gray-500" 
+                  : "bg-gradient-to-r from-blue-600/20 to-cyan-600/20 border-cyan-500/50 text-cyan-300 hover:bg-cyan-600/30"
+              }`}
             >
-              {isMuted ? <MicOff className="w-5 h-5 mr-2" /> : <Mic className="w-5 h-5 mr-2" />}
-              {isMuted ? "Stumm" : "Laut"}
+              {isMuted ? <VolumeX className="w-5 h-5 mr-2" /> : <Volume2 className="w-5 h-5 mr-2" />}
+              {isMuted ? "🔇 Stumm" : "🔊 Laut"}
             </Button>
 
             {/* Abbrechen Button */}
@@ -261,21 +314,27 @@ export default function VoiceAssistant({ isOpen, onClose }: VoiceAssistantProps)
               onClick={cancelRecording}
               variant="outline"
               disabled={!isRecording && !recordedAudio}
-              className="py-3 border-gray-600 text-gray-300"
+              className="py-4 border-gray-600 text-gray-300 hover:bg-gray-700/50 font-bold transition-all duration-300"
             >
               <X className="w-5 h-5 mr-2" />
-              Abbrechen
+              ❌ Abbrechen
             </Button>
 
             {/* Abschicken Button */}
             <Button
               onClick={sendToSigi}
               disabled={!recordedAudio || isProcessing}
-              className="bg-cyan-600 hover:bg-cyan-700 text-white py-3"
+              className="bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 text-white py-4 font-bold shadow-lg hover:shadow-cyan-500/25 transition-all duration-300 disabled:from-gray-600 disabled:to-gray-700"
             >
               <Send className="w-5 h-5 mr-2" />
-              {isProcessing ? "Sende..." : "An Sigi"}
+              {isProcessing ? "📤 Sende..." : "🚀 An Sigi"}
             </Button>
+          </div>
+
+          {/* Status Info */}
+          <div className="text-center text-xs text-gray-500 space-y-1">
+            <p>💡 Tipp: Sprechen Sie klar und deutlich für beste Ergebnisse</p>
+            {isMuted && <p>🔇 Audio-Wiedergabe ist deaktiviert</p>}
           </div>
         </div>
       </DialogContent>
