@@ -1,75 +1,41 @@
-import React, { useState, useEffect } from "react";
 import { useLocation } from "wouter";
+import { Button } from "@/components/ui/button";
+const fishingBackground = "/file_000000001858620a97cb43f0ecc79a29_1754058073370.png";
+import { useLanguage } from "@/contexts/language-context";
+import LanguageSwitcher from "@/components/language-switcher";
 
-export default function Splash() {
+export default function SplashPage() {
   const [, setLocation] = useLocation();
-  const [time, setTime] = useState(new Date());
-  const [weather, setWeather] = useState("sunny"); // sunny, evening, rain
-
-  // Zeit aktualisieren
-  useEffect(() => {
-    const timer = setInterval(() => setTime(new Date()), 1000);
-    return () => clearInterval(timer);
-  }, []);
-
-  // Beispiel Wetter Logik (später API einbauen)
-  useEffect(() => {
-    const hour = time.getHours();
-    if (hour >= 18 && hour < 21) {
-      setWeather("evening");
-    } else if (hour >= 21 || hour < 6) {
-      setWeather("night");
-    } else {
-      setWeather("sunny");
-    }
-  }, [time]);
-
-  // Icon abhängig vom Wetter
-  const renderWeatherIcon = () => {
-    switch (weather) {
-      case "sunny":
-        return <span style={{ fontSize: "3rem" }}>🌞</span>;
-      case "evening":
-        return <span style={{ fontSize: "3rem" }}>🌇</span>;
-      case "night":
-        return <span style={{ fontSize: "3rem" }}>🌙</span>;
-      case "rain":
-        return <span style={{ fontSize: "3rem" }}>🌧️</span>;
-      default:
-        return <span style={{ fontSize: "3rem" }}>☁️</span>;
-    }
-  };
+  const { t } = useLanguage();
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-200 to-blue-400 flex flex-col items-center justify-center space-y-6">
-      {/* FishMasterKI Logo */}
-      <div className="text-center mb-8">
-        <h1 className="text-5xl font-bold text-gray-800 mb-2">FishMasterKI</h1>
-        <p className="text-lg text-gray-600">Ihr intelligenter Angel-Assistent</p>
+    <div className="min-h-screen relative flex flex-col items-center justify-center overflow-hidden">
+      {/* Background Image with the new splash screen */}
+      <div 
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+        style={{
+          backgroundImage: `url(${fishingBackground})`,
+        }}
+      >
+      </div>
+      
+      {/* Language Switcher */}
+      <div className="absolute top-4 right-4 z-20">
+        <LanguageSwitcher />
       </div>
 
-      {/* Uhrzeit */}
-      <h2 className="text-4xl font-bold text-gray-800">
-        {time.toLocaleTimeString("de-DE")}
-      </h2>
-
-      {/* Wetter Symbol */}
-      <div>{renderWeatherIcon()}</div>
-
-      {/* Button für KI-Assistent */}
-      <button
-        className="px-6 py-3 bg-green-500 text-white font-bold rounded-lg shadow-lg hover:bg-green-600 transition"
-        onClick={() => setLocation("/home")}
-      >
-        🎤 KI-Assistent starten
-      </button>
-
-      {/* Zusätzliche Angel-Info */}
-      <div className="text-center text-gray-700 max-w-md">
-        <p className="text-sm">
-          Entdecken Sie Angelplätze, identifizieren Sie Fische und erhalten Sie 
-          personalisierte Tipps von Ihrem KI-Angel-Experten Sigi!
+      {/* Main Content - positioned to not overlap with the existing "FISHMASTER KI" text */}
+      <div className="relative z-10 text-center px-6 mt-32">
+        <p className="text-cyan-300 text-sm tracking-[0.3em] mb-8 animate-fade-in drop-shadow-2xl">
+          {t("splash.subtitle")}
         </p>
+        
+        <Button
+          onClick={() => setLocation("/home")}
+          className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-400 hover:to-green-500 text-white px-10 py-6 text-lg rounded-full shadow-2xl transform transition-all duration-300 hover:scale-105 animate-fade-in-up animation-delay-500"
+        >
+          {t("splash.startButton")}
+        </Button>
       </div>
     </div>
   );
