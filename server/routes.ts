@@ -330,7 +330,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Audio transcription endpoint for Sigi
   app.use("/api/sigi/transcribe", (req, res, next) => {
     if (req.method === 'POST') {
-      req.setEncoding(null);
+      req.setEncoding('binary' as BufferEncoding);
       let body = Buffer.alloc(0);
       req.on('data', (chunk) => {
         body = Buffer.concat([body, chunk]);
@@ -466,6 +466,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(stats);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch user stats" });
+    }
+  });
+
+  // KI Buddy API for Sigi
+  app.post("/api/kibuddy", async (req, res) => {
+    try {
+      const { message, context } = req.body;
+      
+      if (!message) {
+        return res.status(400).json({ error: "Message is required" });
+      }
+
+      const openaiApiKey = process.env.OPENAI_API_KEY;
+      if (!openaiApiKey) {
+        // Fallback response when no API key
+        const fallbackResponses = [
+          "🎣 Basierend auf meiner Erfahrung würde ich empfehlen, früh am Morgen zu angeln für die besten Ergebnisse!",
+          "🌊 Bei dem aktuellen Wetter sollten Sie es mit Spinnern oder Wobblern versuchen.",
+          "🎯 Für bessere Fänge probieren Sie verschiedene Tiefen und Köder aus!",
+          "🌅 Die Morgendämmerung und Abenddämmerung sind optimal für fast alle Fischarten.",
+          "⚡ Tipp: Achten Sie auf Wetteränderungen - Fische sind vor Fronten oft besonders aktiv!"
+        ];
+        
+        const randomResponse = fallbackResponses[Math.floor(Math.random() * fallbackResponses.length)];
+        return res.json({ reply: randomResponse });
+      }
+
+      // Import SigiAIBuddy from kibuddy module
+      const kibuddyModule = await import('./kibuddy');
+      const SigiAIBuddy = kibuddyModule.SigiAIBuddy;
+      const sigi = new SigiAIBuddy(openaiApiKey);
+      
+      const response = await sigi.generateResponse(message, context);
+      res.json({ reply: response });
+      
+    } catch (error) {
+      console.error('KI Buddy error:', error);
+      res.status(500).json({ 
+        reply: "🎣 Entschuldigung, ich habe gerade technische Probleme. Versuchen Sie es in einem Moment erneut!"
+      });
     }
   });
 

@@ -1,0 +1,104 @@
+import React, { useState, useEffect } from "react";
+import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from "react-leaflet";
+import "leaflet/dist/leaflet.css";
+
+export default function SpotBookmarks() {
+  const [spots, setSpots] = useState([]);
+
+  useEffect(() => {
+    const saved = localStorage.getItem("spots");
+    if (saved) setSpots(JSON.parse(saved));
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem("spots", JSON.stringify(spots));
+  }, [spots]);
+
+  const removeSpot = (index) => {
+    const updated = [...spots];
+    updated.splice(index, 1);
+    setSpots(updated);
+  };
+
+  // Klick auf Map → Spot hinzufügen
+  function AddSpotOnClick() {
+    useMapEvents({
+      click(e) {
+        const name = prompt("Name des Spots eingeben:");
+        if (name && name.trim() !== "") {
+          setSpots([...spots, { 
+            name, 
+            coords: e.latlng, 
+            bait: "", 
+            rod: "", 
+            notes: "" 
+          }]);
+        }
+      },
+    });
+    return null;
+  }
+
+  const defaultPosition = spots.length > 0 ? [spots[0].coords.lat, spots[0].coords.lng] : [51.1657, 10.4515];
+
+  return (
+    <div style={{ padding: "20px" }}>
+      <h2>📍 Lieblings-Spots mit Details</h2>
+      <p>Klicke auf die Karte, um einen neuen Spot hinzuzufügen.</p>
+
+      <ul>
+        {spots.map((s, index) => (
+          <li key={index}>
+            {s.name} ({s.coords.lat.toFixed(5)}, {s.coords.lng.toFixed(5)}){" "}
+            <button onClick={() => removeSpot(index)}>❌</button>
+          </li>
+        ))}
+      </ul>
+
+      <MapContainer center={defaultPosition} zoom={8} style={{ height: "400px", width: "100%" }}>
+        <TileLayer
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        />
+        {spots.map((s, index) => (
+          <Marker key={index} position={[s.coords.lat, s.coords.lng]}>
+            <Popup>
+              <b>{s.name}</b><br />
+              Koordinaten: {s.coords.lat.toFixed(5)}, {s.coords.lng.toFixed(5)}<br />
+              <label>Köder: </label>
+              <input
+                type="text"
+                value={s.bait}
+                onChange={(e) => {
+                  const updated = [...spots];
+                  updated[index].bait = e.target.value;
+                  setSpots(updated);
+                }}
+              /><br />
+              <label>Rute: </label>
+              <input
+                type="text"
+                value={s.rod}
+                onChange={(e) => {
+                  const updated = [...spots];
+                  updated[index].rod = e.target.value;
+                  setSpots(updated);
+                }}
+              /><br />
+              <label>Notizen: </label>
+              <textarea
+                value={s.notes}
+                onChange={(e) => {
+                  const updated = [...spots];
+                  updated[index].notes = e.target.value;
+                  setSpots(updated);
+                }}
+              />
+            </Popup>
+          </Marker>
+        ))}
+        <AddSpotOnClick />
+      </MapContainer>
+    </div>
+  );
+}

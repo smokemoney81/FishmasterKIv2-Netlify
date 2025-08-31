@@ -182,4 +182,5 @@ async function buildEnhancedContext(baseContext: any = {}) {
   }
 }
 
+export { SigiAIBuddy };
 export default router;

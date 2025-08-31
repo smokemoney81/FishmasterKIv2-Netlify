@@ -1,4 +1,4 @@
-import KiBuddy from "../../components/kibuddy";
+import KiBuddy from "../../../client/components/kibuddy";
 import MobileHeader from "@/components/layout/mobile-header";
 
 export default function Sigi() {
