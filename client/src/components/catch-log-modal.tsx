@@ -125,11 +125,11 @@ export default function CatchLogModal({ isOpen, onClose }: CatchLogModalProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-md mx-4 max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-md mx-4 max-h-[90vh] overflow-y-auto bg-gray-900/95 backdrop-blur-md border border-cyan-500/30">
         <DialogHeader>
-          <DialogTitle className="flex items-center justify-between">
+          <DialogTitle className="flex items-center justify-between text-gray-100">
             Log Your Catch
-            <Button variant="ghost" size="sm" onClick={handleClose}>
+            <Button variant="ghost" size="sm" onClick={handleClose} className="text-gray-300 hover:text-white">
               <X className="w-4 h-4" />
             </Button>
           </DialogTitle>
@@ -137,10 +137,10 @@ export default function CatchLogModal({ isOpen, onClose }: CatchLogModalProps) {
         
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <Label htmlFor="species">Species *</Label>
+            <Label htmlFor="species" className="text-gray-200">Species *</Label>
             <Select value={formData.speciesId} onValueChange={(value) => setFormData(prev => ({ ...prev, speciesId: value }))}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select fish species..." />
+              <SelectTrigger className="bg-gray-800/60 border-cyan-500/30 text-white">
+                <SelectValue placeholder="Select fish species..." className="placeholder:text-gray-400" />
               </SelectTrigger>
               <SelectContent>
                 {species.map((fish) => (
@@ -154,7 +154,7 @@ export default function CatchLogModal({ isOpen, onClose }: CatchLogModalProps) {
           
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="weight">Weight (lbs)</Label>
+              <Label htmlFor="weight" className="text-gray-200">Weight (lbs)</Label>
               <Input
                 id="weight"
                 type="number"
@@ -162,10 +162,11 @@ export default function CatchLogModal({ isOpen, onClose }: CatchLogModalProps) {
                 placeholder="0.0"
                 value={formData.weight}
                 onChange={(e) => setFormData(prev => ({ ...prev, weight: e.target.value }))}
+                className="bg-gray-800/60 border-cyan-500/30 text-white placeholder-gray-400"
               />
             </div>
             <div>
-              <Label htmlFor="length">Length (in)</Label>
+              <Label htmlFor="length" className="text-gray-200">Length (in)</Label>
               <Input
                 id="length"
                 type="number"
@@ -173,15 +174,16 @@ export default function CatchLogModal({ isOpen, onClose }: CatchLogModalProps) {
                 placeholder="0.0"
                 value={formData.length}
                 onChange={(e) => setFormData(prev => ({ ...prev, length: e.target.value }))}
+                className="bg-gray-800/60 border-cyan-500/30 text-white placeholder-gray-400"
               />
             </div>
           </div>
 
           <div>
-            <Label htmlFor="spot">Location</Label>
+            <Label htmlFor="spot" className="text-gray-200">Location</Label>
             <Select value={formData.spotId} onValueChange={(value) => setFormData(prev => ({ ...prev, spotId: value }))}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select fishing location..." />
+              <SelectTrigger className="bg-gray-800/60 border-cyan-500/30 text-white">
+                <SelectValue placeholder="Select fishing location..." className="placeholder:text-gray-400" />
               </SelectTrigger>
               <SelectContent>
                 {spots.map((spot) => (
@@ -194,17 +196,18 @@ export default function CatchLogModal({ isOpen, onClose }: CatchLogModalProps) {
           </div>
 
           <div>
-            <Label htmlFor="bait">Bait Used</Label>
+            <Label htmlFor="bait" className="text-gray-200">Bait Used</Label>
             <Input
               id="bait"
               placeholder="What bait did you use?"
               value={formData.baitUsed}
               onChange={(e) => setFormData(prev => ({ ...prev, baitUsed: e.target.value }))}
+              className="bg-gray-800/60 border-cyan-500/30 text-white placeholder-gray-400"
             />
           </div>
 
           <div>
-            <Label>Photo</Label>
+            <Label className="text-gray-200">Photo</Label>
             {formData.photoUrl ? (
               <div className="relative">
                 <img 
@@ -228,24 +231,25 @@ export default function CatchLogModal({ isOpen, onClose }: CatchLogModalProps) {
                 maxFileSize={10485760}
                 onGetUploadParameters={getUploadParameters}
                 onComplete={handleUploadComplete}
-                buttonClassName="w-full border-2 border-dashed border-slate-300 rounded-lg p-6 text-center hover:border-blue-500 transition-colors"
+                buttonClassName="w-full border-2 border-dashed border-cyan-500/30 rounded-lg p-6 text-center hover:border-cyan-400 transition-colors bg-gray-800/30"
               >
                 <div>
-                  <Camera className="w-8 h-8 text-slate-400 mx-auto mb-2" />
-                  <div className="text-sm text-slate-600">Add a photo of your catch</div>
+                  <Camera className="w-8 h-8 text-cyan-400 mx-auto mb-2" />
+                  <div className="text-sm text-gray-300">Add a photo of your catch</div>
                 </div>
               </ObjectUploader>
             )}
           </div>
 
           <div>
-            <Label htmlFor="notes">Notes</Label>
+            <Label htmlFor="notes" className="text-gray-200">Notes</Label>
             <Textarea
               id="notes"
               rows={3}
               placeholder="Share details about your catch..."
               value={formData.notes}
               onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
+              className="bg-gray-800/60 border-cyan-500/30 text-white placeholder-gray-400"
             />
           </div>
 
