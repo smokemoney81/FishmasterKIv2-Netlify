@@ -13,6 +13,7 @@ import Species from "@/pages/species";
 import Tips from "@/pages/tips";
 import Profile from "@/pages/profile";
 import Logbook from "@/pages/logbook";
+import Sigi from "@/pages/sigi";
 import BottomNavigation from "@/components/layout/bottom-navigation";
 
 function Router() {
@@ -64,6 +65,12 @@ function Router() {
       <Route path="/profile">
         <div className="min-h-screen bg-gray-900" style={{backgroundImage: 'url(/icons/background.jpg)', backgroundSize: 'cover', backgroundPosition: 'center', backgroundAttachment: 'fixed'}}>
           <Profile />
+          <BottomNavigation />
+        </div>
+      </Route>
+      <Route path="/sigi">
+        <div className="min-h-screen bg-gray-900" style={{backgroundImage: 'url(/icons/background.jpg)', backgroundSize: 'cover', backgroundPosition: 'center', backgroundAttachment: 'fixed'}}>
+          <Sigi />
           <BottomNavigation />
         </div>
       </Route>

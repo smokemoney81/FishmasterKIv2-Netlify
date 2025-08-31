@@ -51,7 +51,7 @@ export default function Home() {
           <Button
             variant="outline"
             className="h-auto p-4 flex flex-col items-center space-y-2 bg-gray-900/30 backdrop-blur-sm border border-cyan-500/20 hover:border-cyan-400 transition-all"
-            onClick={() => setLocation("/identify")}
+            onClick={() => setLocation("/sigi")}
           >
             <img src={kiIcon} className="w-10 h-10 object-contain" alt={t("quickActions.kiBuddy")} />
             <span className="text-xs font-medium text-cyan-300">{t("quickActions.kiBuddy")}</span>
