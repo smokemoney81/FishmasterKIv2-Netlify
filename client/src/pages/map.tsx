@@ -17,7 +17,7 @@ export default function Map() {
         <div className="p-4">
           <div className="animate-pulse space-y-4">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="bg-gray-200 h-48 rounded-xl"></div>
+              <div key={i} className="bg-gray-800 h-48 rounded-xl"></div>
             ))}
           </div>
         </div>
@@ -87,17 +87,17 @@ export default function Map() {
                 </div>
                 
                 <div className="flex items-center justify-between text-sm">
-                  <div className="flex items-center text-slate-500">
+                  <div className="flex items-center text-gray-400">
                     <MapPin className="w-4 h-4 mr-1" />
                     <span>{spot.accessibility}</span>
                   </div>
-                  <div className="text-orange-500 font-medium">
+                  <div className="text-cyan-400 font-medium">
                     {spot.recentCatches} recent catches
                   </div>
                 </div>
                 
                 {spot.facilities && spot.facilities.length > 0 && (
-                  <div className="mt-3 pt-3 border-t border-slate-100">
+                  <div className="mt-3 pt-3 border-t border-gray-700/30">
                     <div className="flex flex-wrap gap-1">
                       {spot.facilities.map((facility) => (
                         <Badge key={facility} variant="outline" className="text-xs">

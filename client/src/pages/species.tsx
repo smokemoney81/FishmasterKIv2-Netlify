@@ -31,7 +31,7 @@ export default function Species() {
         <div className="p-4">
           <div className="animate-pulse space-y-4">
             {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="bg-gray-200 h-32 rounded-xl"></div>
+              <div key={i} className="bg-gray-800 h-32 rounded-xl"></div>
             ))}
           </div>
         </div>
@@ -80,15 +80,15 @@ export default function Species() {
       {/* Species Grid */}
       <section className="px-4 pb-6">
         {filteredSpecies.length === 0 ? (
-          <Card className="p-8 text-center">
-            <Fish className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-            <h3 className="font-semibold text-slate-600 mb-1">No species found</h3>
-            <p className="text-sm text-slate-500">Try adjusting your search or filters</p>
+          <Card className="p-8 text-center bg-gray-900/30 backdrop-blur-sm border border-cyan-500/20">
+            <Fish className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+            <h3 className="font-semibold text-gray-300 mb-1">No species found</h3>
+            <p className="text-sm text-gray-400">Try adjusting your search or filters</p>
           </Card>
         ) : (
           <div className="grid grid-cols-1 gap-4">
             {filteredSpecies.map((fish) => (
-              <Card key={fish.id} className="overflow-hidden">
+              <Card key={fish.id} className="overflow-hidden bg-gray-900/30 backdrop-blur-sm border border-cyan-500/20">
                 <div className="flex">
                   <div className="w-24 h-24 flex-shrink-0">
                     <img 
@@ -100,9 +100,9 @@ export default function Species() {
                   <div className="flex-1 p-4">
                     <div className="flex items-start justify-between mb-2">
                       <div>
-                        <h4 className="font-semibold text-slate-800">{fish.name}</h4>
+                        <h4 className="font-semibold text-gray-100">{fish.name}</h4>
                         {fish.scientificName && (
-                          <p className="text-xs text-slate-500 italic">{fish.scientificName}</p>
+                          <p className="text-xs text-gray-400 italic">{fish.scientificName}</p>
                         )}
                       </div>
                       <Badge 
@@ -117,9 +117,9 @@ export default function Species() {
                       </Badge>
                     </div>
                     
-                    <p className="text-sm text-slate-600 mb-2">{fish.habitat}</p>
+                    <p className="text-sm text-gray-300 mb-2">{fish.habitat}</p>
                     
-                    <div className="flex items-center space-x-4 text-xs text-slate-500">
+                    <div className="flex items-center space-x-4 text-xs text-gray-400">
                       {fish.averageWeight && (
                         <span>⚖️ {fish.averageWeight} lbs avg</span>
                       )}
