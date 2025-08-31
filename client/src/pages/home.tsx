@@ -33,9 +33,9 @@ export default function Home() {
     queryKey: ["/api/catches"],
   });
 
-  const featuredSpots = spots.slice(0, 2);
-  const featuredSpecies = species.slice(0, 4);
-  const recentCatches = catches.slice(0, 3);
+  const featuredSpots = spots.slice(0, 1);
+  const featuredSpecies = species.slice(0, 2);
+  const recentCatches = catches.slice(0, 2);
 
   return (
     <>

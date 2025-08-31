@@ -63,6 +63,18 @@
 
   body {
     @apply font-sans antialiased bg-background text-foreground;
+    height: 100vh;
+    overflow-y: auto;
+  }
+  
+  /* Ensure proper scrolling */
+  html, body {
+    scroll-behavior: smooth;
+  }
+  
+  .page-container {
+    min-height: 100vh;
+    overflow-y: auto;
   }
 }
 

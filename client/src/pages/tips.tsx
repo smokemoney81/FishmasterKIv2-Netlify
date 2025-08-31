@@ -120,7 +120,7 @@ export default function Tips() {
       <section className="px-4 py-6">
         <h3 className="text-lg font-semibold text-gray-100 mb-4">Popular Tips</h3>
         <div className="space-y-4">
-          {/* Mock popular tips since we only have one in our data */}
+          {/* Nur relevante Popular Tips */}
           <Card className="p-4 bg-gray-900/30 backdrop-blur-sm border border-cyan-500/20">
             <div className="flex items-start space-x-3">
               <div className="w-10 h-10 bg-cyan-500/20 rounded-full flex items-center justify-center flex-shrink-0">
@@ -148,22 +148,6 @@ export default function Tips() {
                 <div className="flex items-center space-x-2">
                   <Badge variant="outline" className="text-xs">Technique</Badge>
                   <Badge variant="outline" className="text-xs">Intermediate</Badge>
-                </div>
-              </div>
-            </div>
-          </Card>
-          
-          <Card className="p-4 bg-gray-900/30 backdrop-blur-sm border border-cyan-500/20">
-            <div className="flex items-start space-x-3">
-              <div className="w-10 h-10 bg-cyan-500/20 rounded-full flex items-center justify-center flex-shrink-0">
-                <span className="text-cyan-400 text-sm">🌡️</span>
-              </div>
-              <div className="flex-1">
-                <h4 className="font-medium text-gray-100 mb-1">Water Temperature Matters</h4>
-                <p className="text-sm text-gray-300 mb-2">Fish activity changes with water temperature - adjust your strategy accordingly</p>
-                <div className="flex items-center space-x-2">
-                  <Badge variant="outline" className="text-xs">Strategy</Badge>
-                  <Badge variant="outline" className="text-xs">Advanced</Badge>
                 </div>
               </div>
             </div>

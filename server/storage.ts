@@ -58,7 +58,7 @@ export class MemStorage implements IStorage {
   }
 
   private initializeMockData() {
-    // Initialize mock fish species
+    // Initialize mock fish species (nur relevanteste)
     const species = [
       {
         id: "rainbow-trout",
@@ -85,38 +85,12 @@ export class MemStorage implements IStorage {
         averageLength: 16,
         tips: "Target structure like fallen trees and weed beds.",
         commonBaits: ["Plastic worms", "Crankbaits", "Jigs", "Topwater lures"]
-      },
-      {
-        id: "coho-salmon",
-        name: "Coho Salmon",
-        scientificName: "Oncorhynchus kisutch",
-        description: "A prized salmon species known for its acrobatic fights.",
-        habitat: "Rivers and streams during spawning",
-        difficulty: "Advanced",
-        imageUrl: "https://images.unsplash.com/photo-1571752726703-5e7d1f6a986d?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=200",
-        averageWeight: 8,
-        averageLength: 24,
-        tips: "Fish during salmon runs in fall months.",
-        commonBaits: ["Salmon flies", "Spoons", "Roe", "Spinners"]
-      },
-      {
-        id: "northern-pike",
-        name: "Northern Pike",
-        scientificName: "Esox lucius",
-        description: "An aggressive predator fish with distinctive markings.",
-        habitat: "Weedy lakes and slow rivers",
-        difficulty: "Intermediate",
-        imageUrl: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=200",
-        averageWeight: 6,
-        averageLength: 28,
-        tips: "Use steel leaders to prevent bite-offs.",
-        commonBaits: ["Large spoons", "Jerkbaits", "Live bait", "Spinnerbaits"]
       }
     ];
 
     species.forEach(s => this.fishSpecies.set(s.id, s as FishSpecies));
 
-    // Initialize mock fishing spots
+    // Initialize mock fishing spots (nur wichtigste)
     const spots = [
       {
         id: "crystal-lake",
@@ -131,20 +105,6 @@ export class MemStorage implements IStorage {
         bestSeasons: ["Spring", "Summer", "Fall"],
         commonSpecies: ["Rainbow Trout", "Largemouth Bass"],
         recentCatches: 12
-      },
-      {
-        id: "whispering-river",
-        name: "Whispering River",
-        description: "Perfect for fly fishing and salmon runs",
-        latitude: 39.1234,
-        longitude: -120.4567,
-        fishingScore: 8.7,
-        imageUrl: "https://images.unsplash.com/photo-1439066615861-d1af74d74000?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=300",
-        accessibility: "Moderate hike required",
-        facilities: ["Trail access only"],
-        bestSeasons: ["Fall", "Spring"],
-        commonSpecies: ["Coho Salmon", "Rainbow Trout"],
-        recentCatches: 8
       }
     ];
 
