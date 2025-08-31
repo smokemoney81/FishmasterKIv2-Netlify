@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { X, MessageCircle, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import sigiAvatar from "@assets/flux-1-kontext-dev_Stell_die_in_einer_C_1756603191003.png";
 
 interface ChatMessage {
   id: number;
@@ -142,7 +143,11 @@ export default function FloatingSigiChat() {
             data-testid="button-open-sigi"
           >
             <div className="relative">
-              <MessageCircle className="w-8 h-8 text-white" />
+              <img 
+                src={sigiAvatar} 
+                alt="Sigi AI" 
+                className="w-12 h-12 rounded-full object-cover border-2 border-cyan-300/50"
+              />
               <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
             </div>
           </Button>
@@ -155,9 +160,11 @@ export default function FloatingSigiChat() {
           {/* Header */}
           <div className="flex items-center justify-between p-4 bg-gradient-to-r from-cyan-600 to-blue-600 border-b border-cyan-500/30">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-r from-cyan-400 to-blue-400 rounded-full flex items-center justify-center border-2 border-white/20">
-                <span className="text-white text-sm font-bold">S</span>
-              </div>
+              <img 
+                src={sigiAvatar} 
+                alt="Sigi AI" 
+                className="w-10 h-10 rounded-full object-cover border-2 border-white/20"
+              />
               <div>
                 <h3 className="text-white font-semibold text-sm">🎣 Sigi</h3>
                 <p className="text-cyan-100 text-xs">Ihr Angel-Experte</p>
