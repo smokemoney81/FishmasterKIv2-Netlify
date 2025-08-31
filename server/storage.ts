@@ -140,6 +140,7 @@ export class MemStorage implements IStorage {
     const user: User = { 
       ...insertUser, 
       id,
+      avatar: insertUser.avatar ?? null,
       totalCatches: 0,
       speciesCount: 0,
       spotsVisited: 0,
@@ -168,7 +169,19 @@ export class MemStorage implements IStorage {
 
   async createFishSpecies(insertSpecies: InsertFishSpecies): Promise<FishSpecies> {
     const id = randomUUID();
-    const species: FishSpecies = { ...insertSpecies, id };
+    const species: FishSpecies = { 
+      ...insertSpecies, 
+      id,
+      tips: insertSpecies.tips ?? null,
+      difficulty: insertSpecies.difficulty ?? null,
+      imageUrl: insertSpecies.imageUrl ?? null,
+      scientificName: insertSpecies.scientificName ?? null,
+      description: insertSpecies.description ?? null,
+      habitat: insertSpecies.habitat ?? null,
+      averageWeight: insertSpecies.averageWeight ?? null,
+      averageLength: insertSpecies.averageLength ?? null,
+      commonBaits: insertSpecies.commonBaits ? [...insertSpecies.commonBaits] : null
+    };
     this.fishSpecies.set(id, species);
     return species;
   }
@@ -184,7 +197,18 @@ export class MemStorage implements IStorage {
 
   async createFishingSpot(insertSpot: InsertFishingSpot): Promise<FishingSpot> {
     const id = randomUUID();
-    const spot: FishingSpot = { ...insertSpot, id };
+    const spot: FishingSpot = { 
+      ...insertSpot, 
+      id,
+      imageUrl: insertSpot.imageUrl ?? null,
+      description: insertSpot.description ?? null,
+      fishingScore: insertSpot.fishingScore ?? null,
+      accessibility: insertSpot.accessibility ?? null,
+      facilities: insertSpot.facilities ? [...insertSpot.facilities] : null,
+      bestSeasons: insertSpot.bestSeasons ? [...insertSpot.bestSeasons] : null,
+      commonSpecies: insertSpot.commonSpecies ? [...insertSpot.commonSpecies] : null,
+      recentCatches: insertSpot.recentCatches ?? null
+    };
     this.fishingSpots.set(id, spot);
     return spot;
   }
@@ -219,6 +243,16 @@ export class MemStorage implements IStorage {
     const catchData: Catch = { 
       ...insertCatch, 
       id,
+      length: insertCatch.length ?? null,
+      speciesId: insertCatch.speciesId ?? null,
+      spotId: insertCatch.spotId ?? null,
+      weight: insertCatch.weight ?? null,
+      photoUrl: insertCatch.photoUrl ?? null,
+      notes: insertCatch.notes ?? null,
+      baitUsed: insertCatch.baitUsed ?? null,
+      weatherConditions: insertCatch.weatherConditions ?? null,
+      waterTemperature: insertCatch.waterTemperature ?? null,
+      isReleased: insertCatch.isReleased ?? null,
       createdAt: new Date(),
       likes: 0,
       comments: 0
@@ -249,6 +283,10 @@ export class MemStorage implements IStorage {
     const tip: Tip = { 
       ...insertTip, 
       id,
+      category: insertTip.category ?? null,
+      difficulty: insertTip.difficulty ?? null,
+      imageUrl: insertTip.imageUrl ?? null,
+      author: insertTip.author ?? null,
       createdAt: new Date()
     };
     this.tips.set(id, tip);
@@ -278,6 +316,12 @@ export class MemStorage implements IStorage {
     const weather: Weather = { 
       ...insertWeather, 
       id,
+      visibility: insertWeather.visibility ?? null,
+      fishingScore: insertWeather.fishingScore ?? null,
+      temperature: insertWeather.temperature ?? null,
+      condition: insertWeather.condition ?? null,
+      windSpeed: insertWeather.windSpeed ?? null,
+      humidity: insertWeather.humidity ?? null,
       timestamp: new Date()
     };
     this.weather.set(id, weather);
@@ -302,6 +346,7 @@ export class MemStorage implements IStorage {
     const entry: LogbookEntry = { 
       ...insertEntry, 
       id,
+      userId: insertEntry.userId ?? null,
       createdAt: new Date()
     };
     this.logbook.set(id, entry);
