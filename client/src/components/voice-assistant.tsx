@@ -1,7 +1,7 @@
 
 import React, { useState, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { X, Mic, MicOff, Volume2, VolumeX } from "lucide-react";
+import { X, Mic, MicOff, Send, Volume2, VolumeX } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
@@ -13,12 +13,11 @@ interface VoiceAssistantProps {
   onClose: () => void;
 }
 
-interface VoiceMessage {
+interface ChatMessage {
   id: number;
   type: 'user' | 'ai';
   message: string;
   timestamp: Date;
-  isAudio?: boolean;
 }
 
 export default function VoiceAssistant({ isOpen, onClose }: VoiceAssistantProps) {
@@ -28,11 +27,12 @@ export default function VoiceAssistant({ isOpen, onClose }: VoiceAssistantProps)
   const [isMuted, setIsMuted] = useState(false);
   const [recordedAudio, setRecordedAudio] = useState<Blob | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [voiceMessages, setVoiceMessages] = useState<VoiceMessage[]>([
+  const [currentMessage, setCurrentMessage] = useState("");
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([
     {
       id: 0,
       type: 'ai',
-      message: 'Hallo! Ich bin Sigi, Ihr Angel-Experte. Drücken Sie das Mikrofon und sprechen Sie mit mir!',
+      message: 'Hallo! Ich bin Sigi, Ihr Angel-Experte. Wie kann ich Ihnen heute helfen?',
       timestamp: new Date()
     }
   ]);
@@ -92,17 +92,33 @@ export default function VoiceAssistant({ isOpen, onClose }: VoiceAssistantProps)
     const demoTranscript = "Wie ist das Wetter heute zum Angeln?";
     
     // Füge User-Nachricht hinzu
-    const userMessage: VoiceMessage = {
+    const userMessage: ChatMessage = {
       id: Date.now(),
       type: 'user',
       message: demoTranscript,
-      timestamp: new Date(),
-      isAudio: true
+      timestamp: new Date()
     };
-    setVoiceMessages(prev => [...prev, userMessage]);
+    setChatMessages(prev => [...prev, userMessage]);
     
     // Sende an Sigi
     await sendToSigi(demoTranscript);
+  };
+
+  const sendTextMessage = async () => {
+    if (!currentMessage.trim()) return;
+    
+    const userMessage: ChatMessage = {
+      id: Date.now(),
+      type: 'user',
+      message: currentMessage.trim(),
+      timestamp: new Date()
+    };
+    
+    setChatMessages(prev => [...prev, userMessage]);
+    const messageToSend = currentMessage.trim();
+    setCurrentMessage("");
+    
+    await sendToSigi(messageToSend);
   };
 
   const sendToSigi = async (messageText: string) => {
@@ -137,14 +153,14 @@ export default function VoiceAssistant({ isOpen, onClose }: VoiceAssistantProps)
       
       const data = await response.json();
       
-      const sigiMessage: VoiceMessage = {
+      const sigiMessage: ChatMessage = {
         id: Date.now() + 1,
         type: 'ai',
         message: data.reply || "Entschuldigung, ich konnte Ihre Anfrage nicht verarbeiten.",
         timestamp: new Date()
       };
       
-      setVoiceMessages(prev => [...prev, sigiMessage]);
+      setChatMessages(prev => [...prev, sigiMessage]);
       
       // Sigi-Antwort vorlesen
       if (data.reply && !isMuted) {
@@ -156,17 +172,24 @@ export default function VoiceAssistant({ isOpen, onClose }: VoiceAssistantProps)
       }
       
     } catch (error) {
-      const fallbackMessage: VoiceMessage = {
+      const fallbackMessage: ChatMessage = {
         id: Date.now() + 1,
         type: 'ai',
         message: "Entschuldigung, es gab ein Problem bei der Verbindung. Versuchen Sie es erneut.",
         timestamp: new Date()
       };
-      setVoiceMessages(prev => [...prev, fallbackMessage]);
+      setChatMessages(prev => [...prev, fallbackMessage]);
     }
     
     setIsProcessing(false);
     setRecordedAudio(null);
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendTextMessage();
+    }
   };
 
   const handleClose = () => {
@@ -175,26 +198,24 @@ export default function VoiceAssistant({ isOpen, onClose }: VoiceAssistantProps)
     }
     setRecordedAudio(null);
     setIsProcessing(false);
+    setCurrentMessage("");
     onClose();
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-lg mx-4 h-[70vh] flex flex-col bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
+      <DialogContent className="sm:max-w-2xl mx-4 h-[80vh] flex flex-col bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
         
         {/* Header */}
-        <DialogHeader className="flex-shrink-0 pb-6 border-b border-gray-200 dark:border-gray-700">
+        <DialogHeader className="flex-shrink-0 pb-4 border-b border-gray-200 dark:border-gray-700">
           <DialogTitle className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <img 
                 src={sigiAvatar} 
-                className="w-10 h-10 rounded-full" 
+                className="w-8 h-8 rounded-full" 
                 alt="Sigi" 
               />
-              <div>
-                <span className="text-lg font-semibold text-gray-900 dark:text-white">Sigi</span>
-                <p className="text-xs text-gray-500 dark:text-gray-400">Sprach-Assistent</p>
-              </div>
+              <span className="text-lg font-semibold text-gray-900 dark:text-white">Sigi</span>
             </div>
             <div className="flex items-center space-x-2">
               <Button 
@@ -203,7 +224,7 @@ export default function VoiceAssistant({ isOpen, onClose }: VoiceAssistantProps)
                 onClick={() => setIsMuted(!isMuted)}
                 className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
               >
-                {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
+                {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
               </Button>
               <Button 
                 variant="ghost" 
@@ -211,37 +232,31 @@ export default function VoiceAssistant({ isOpen, onClose }: VoiceAssistantProps)
                 onClick={handleClose}
                 className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4" />
               </Button>
             </div>
           </DialogTitle>
         </DialogHeader>
         
-        {/* Voice Messages Display */}
-        <div className="flex-1 overflow-y-auto py-6 space-y-4">
-          {voiceMessages.map((msg) => (
+        {/* Chat Messages */}
+        <div className="flex-1 overflow-y-auto py-4 space-y-4">
+          {chatMessages.map((msg) => (
             <div
               key={msg.id}
               className={`flex ${msg.type === 'user' ? 'justify-end' : 'justify-start'}`}
             >
-              <div className={`flex items-start space-x-3 max-w-[85%] ${msg.type === 'user' ? 'flex-row-reverse space-x-reverse' : ''}`}>
+              <div className={`flex items-start space-x-3 max-w-[80%] ${msg.type === 'user' ? 'flex-row-reverse space-x-reverse' : ''}`}>
                 {msg.type === 'ai' && (
-                  <img src={sigiAvatar} className="w-8 h-8 rounded-full flex-shrink-0 mt-1" alt="Sigi" />
+                  <img src={sigiAvatar} className="w-6 h-6 rounded-full flex-shrink-0 mt-1" alt="Sigi" />
                 )}
                 <div
-                  className={`px-4 py-3 rounded-2xl shadow-sm ${
+                  className={`px-4 py-3 rounded-2xl ${
                     msg.type === 'user'
                       ? 'bg-blue-500 text-white'
-                      : 'bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white border border-gray-200 dark:border-gray-700'
+                      : 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white'
                   }`}
                 >
-                  <p className="text-sm leading-relaxed">{msg.message}</p>
-                  {msg.isAudio && (
-                    <div className="flex items-center mt-2 text-xs opacity-70">
-                      <Volume2 className="w-3 h-3 mr-1" />
-                      Sprachnachricht
-                    </div>
-                  )}
+                  <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.message}</p>
                 </div>
               </div>
             </div>
@@ -249,16 +264,16 @@ export default function VoiceAssistant({ isOpen, onClose }: VoiceAssistantProps)
           
           {isProcessing && (
             <div className="flex justify-start">
-              <div className="flex items-start space-x-3 max-w-[85%]">
-                <img src={sigiAvatar} className="w-8 h-8 rounded-full flex-shrink-0 mt-1" alt="Sigi" />
-                <div className="px-4 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+              <div className="flex items-start space-x-3 max-w-[80%]">
+                <img src={sigiAvatar} className="w-6 h-6 rounded-full flex-shrink-0 mt-1" alt="Sigi" />
+                <div className="px-4 py-3 rounded-2xl bg-gray-100 dark:bg-gray-800">
                   <div className="flex items-center space-x-2">
                     <div className="flex space-x-1">
-                      <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></div>
-                      <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                      <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                      <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce"></div>
+                      <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                      <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
                     </div>
-                    <span className="text-xs text-gray-500">Sigi denkt nach...</span>
+                    <span className="text-xs text-gray-500">Sigi tippt...</span>
                   </div>
                 </div>
               </div>
@@ -266,44 +281,53 @@ export default function VoiceAssistant({ isOpen, onClose }: VoiceAssistantProps)
           )}
         </div>
 
-        {/* Voice Control Area */}
-        <div className="flex-shrink-0 pt-6 border-t border-gray-200 dark:border-gray-700">
-          <div className="flex flex-col items-center space-y-4">
+        {/* Input Area */}
+        <div className="flex-shrink-0 pt-4 border-t border-gray-200 dark:border-gray-700">
+          <div className="flex items-end space-x-2">
+            <div className="flex-1 min-h-[44px] max-h-32 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-800 focus-within:border-blue-500 dark:focus-within:border-blue-400">
+              <textarea
+                value={currentMessage}
+                onChange={(e) => setCurrentMessage(e.target.value)}
+                onKeyDown={handleKeyPress}
+                placeholder="Nachricht an Sigi..."
+                disabled={isProcessing}
+                className="w-full px-4 py-3 bg-transparent border-none outline-none resize-none text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                rows={1}
+              />
+            </div>
             
-            {/* Large Voice Button */}
+            {/* Voice Button */}
             <Button
               onClick={isRecording ? stopRecording : startRecording}
               disabled={isProcessing}
-              className={`w-20 h-20 rounded-full transition-all duration-300 transform ${
+              size="sm"
+              className={`w-11 h-11 rounded-xl transition-colors ${
                 isRecording 
-                  ? 'bg-red-500 hover:bg-red-600 text-white scale-110 shadow-lg animate-pulse' 
-                  : 'bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white shadow-lg hover:scale-105'
+                  ? 'bg-red-500 hover:bg-red-600 text-white' 
+                  : 'bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-300'
               }`}
             >
-              {isRecording ? <MicOff className="w-8 h-8" /> : <Mic className="w-8 h-8" />}
+              {isRecording ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
             </Button>
             
-            {/* Status Text */}
-            <div className="text-center">
-              {isRecording ? (
-                <div className="flex items-center justify-center space-x-2 text-red-500">
-                  <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-                  <span className="text-sm font-medium">🎤 Aufnahme läuft...</span>
-                </div>
-              ) : isProcessing ? (
-                <span className="text-sm text-blue-500 font-medium">🤖 Sigi verarbeitet...</span>
-              ) : (
-                <span className="text-sm text-gray-500 dark:text-gray-400">
-                  Drücken Sie das Mikrofon zum Sprechen
-                </span>
-              )}
-            </div>
-            
-            {/* Instructions */}
-            <div className="text-center text-xs text-gray-400 dark:text-gray-500 bg-gray-50 dark:bg-gray-800 px-4 py-2 rounded-lg">
-              🎣 Fragen Sie Sigi nach Wetter, Angel-Tipps oder Spots
-            </div>
+            {/* Send Button */}
+            <Button
+              onClick={sendTextMessage}
+              disabled={isProcessing || !currentMessage.trim()}
+              size="sm"
+              className="w-11 h-11 rounded-xl bg-blue-500 hover:bg-blue-600 disabled:bg-gray-300 dark:disabled:bg-gray-600 text-white"
+            >
+              <Send className="w-4 h-4" />
+            </Button>
           </div>
+          
+          {/* Status */}
+          {isRecording && (
+            <div className="mt-2 flex items-center justify-center space-x-2 text-sm text-red-500">
+              <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+              <span>Aufnahme läuft...</span>
+            </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>
