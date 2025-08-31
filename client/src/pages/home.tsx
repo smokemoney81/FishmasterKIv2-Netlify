@@ -91,14 +91,6 @@ export default function Home() {
           <p className="text-cyan-300 text-sm mb-4">
             Perfekte Zeit zum Angeln! 🎣
           </p>
-          
-          {/* Button für KI-Assistent */}
-          <Button
-            className="px-6 py-3 bg-green-500 text-white font-bold rounded-lg shadow-lg hover:bg-green-600 transition"
-            onClick={() => setShowVoiceAssistant(true)}
-          >
-            🎤 KI-Assistent starten
-          </Button>
         </div>
       </section>
       
