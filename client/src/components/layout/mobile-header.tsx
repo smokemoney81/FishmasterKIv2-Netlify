@@ -34,15 +34,6 @@ export default function MobileHeader({ title, showBack = false }: MobileHeaderPr
         
         <div className="flex items-center space-x-2">
           <LanguageSwitcher />
-          <Button variant="ghost" size="sm" className="text-gray-400 hover:text-cyan-400 transition-colors">
-            <Search className="w-5 h-5" />
-          </Button>
-          <Button variant="ghost" size="sm" className="text-gray-400 hover:text-cyan-400 transition-colors">
-            <Bell className="w-5 h-5" />
-          </Button>
-          <div className="w-8 h-8 bg-cyan-600 rounded-full flex items-center justify-center">
-            <User className="w-4 h-4 text-white" />
-          </div>
         </div>
       </div>
     </header>
