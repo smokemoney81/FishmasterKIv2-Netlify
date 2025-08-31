@@ -4,7 +4,8 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Fish, Trophy, Play, RotateCcw, Timer, Target } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Fish, Trophy, Play, RotateCcw, Timer, Target, Waves, Sun, Moon, Cloud, Zap, Star, Gift } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface Fish {
@@ -12,343 +13,670 @@ interface Fish {
   name: string;
   emoji: string;
   points: number;
-  size: string;
-  speed: number;
+  size: 'tiny' | 'small' | 'medium' | 'large' | 'legendary';
+  depth: number;
+  rarity: number; // 0-1, 0 = common, 1 = very rare
+  behavior: 'calm' | 'active' | 'aggressive' | 'shy';
+  preferredTime: 'dawn' | 'day' | 'dusk' | 'night' | 'any';
+  preferredWeather: 'sunny' | 'cloudy' | 'rainy' | 'any';
+}
+
+interface Bait {
+  id: string;
+  name: string;
+  emoji: string;
+  effectiveness: { [key: string]: number }; // fish behavior -> effectiveness
+  cost: number;
+  description: string;
+}
+
+interface GameState {
+  mode: 'menu' | 'playing' | 'casting' | 'waiting' | 'fight' | 'ended';
+  score: number;
+  coins: number;
+  level: number;
+  experience: number;
+  timeOfDay: 'dawn' | 'day' | 'dusk' | 'night';
+  weather: 'sunny' | 'cloudy' | 'rainy';
+  currentDepth: number;
+  selectedBait: string;
+  rodPosition: { x: number; y: number };
+  hookPosition: { x: number; y: number };
+  currentFish: Fish | null;
+  fightProgress: number;
+  energy: number;
+  combo: number;
+  achievements: string[];
 }
 
 const fishTypes: Fish[] = [
-  { id: 1, name: "Kleiner Fisch", emoji: "🐟", points: 10, size: "small", speed: 2000 },
-  { id: 2, name: "Forelle", emoji: "🐠", points: 25, size: "medium", speed: 1500 },
-  { id: 3, name: "Lachs", emoji: "🎣", points: 50, size: "large", speed: 1200 },
-  { id: 4, name: "Seltener Fisch", emoji: "🐡", points: 100, size: "rare", speed: 800 }
+  { id: 1, name: "Winziger Fisch", emoji: "🐠", points: 5, size: 'tiny', depth: 1, rarity: 0.8, behavior: 'calm', preferredTime: 'any', preferredWeather: 'any' },
+  { id: 2, name: "Goldfisch", emoji: "🐟", points: 15, size: 'small', depth: 2, rarity: 0.6, behavior: 'shy', preferredTime: 'day', preferredWeather: 'sunny' },
+  { id: 3, name: "Regenbogenforelle", emoji: "🌈", points: 35, size: 'medium', depth: 3, rarity: 0.4, behavior: 'active', preferredTime: 'dawn', preferredWeather: 'cloudy' },
+  { id: 4, name: "Lachs", emoji: "🍣", points: 60, size: 'large', depth: 4, rarity: 0.3, behavior: 'aggressive', preferredTime: 'dusk', preferredWeather: 'any' },
+  { id: 5, name: "Großer Hecht", emoji: "🦈", points: 100, size: 'large', depth: 5, rarity: 0.2, behavior: 'aggressive', preferredTime: 'night', preferredWeather: 'rainy' },
+  { id: 6, name: "Mystischer Karpfen", emoji: "🐉", points: 200, size: 'legendary', depth: 6, rarity: 0.05, behavior: 'shy', preferredTime: 'dawn', preferredWeather: 'cloudy' },
+  { id: 7, name: "Goldener Fisch", emoji: "⭐", points: 500, size: 'legendary', depth: 7, rarity: 0.01, behavior: 'shy', preferredTime: 'dusk', preferredWeather: 'sunny' }
+];
+
+const baits: Bait[] = [
+  { id: 'worm', name: 'Wurm', emoji: '🪱', effectiveness: { calm: 1.2, shy: 1.1, active: 1.0, aggressive: 0.8 }, cost: 0, description: 'Universalköder für Anfänger' },
+  { id: 'fly', name: 'Fliege', emoji: '🪰', effectiveness: { calm: 1.0, shy: 1.3, active: 1.4, aggressive: 0.9 }, cost: 5, description: 'Perfekt für scheue Fische' },
+  { id: 'spinner', name: 'Spinner', emoji: '⚡', effectiveness: { calm: 0.9, shy: 0.8, active: 1.5, aggressive: 1.3 }, cost: 10, description: 'Lockt aktive Fische an' },
+  { id: 'live', name: 'Lebendköder', emoji: '🐛', effectiveness: { calm: 1.1, shy: 1.2, active: 1.2, aggressive: 1.5 }, cost: 15, description: 'Premium-Köder für große Fische' }
+];
+
+const locations = [
+  { id: 'pond', name: 'Ruhiger Teich', emoji: '🏞️', depths: [1, 2, 3], bonus: 'Erhöhte Chance auf scheue Fische' },
+  { id: 'river', name: 'Wildbach', emoji: '🏔️', depths: [2, 3, 4, 5], bonus: 'Mehr aktive und aggressive Fische' },
+  { id: 'deep_lake', name: 'Tiefer See', emoji: '🌊', depths: [4, 5, 6, 7], bonus: 'Legendäre Fische möglich' }
 ];
 
 export default function Minigame() {
-  const [gameState, setGameState] = useState<'menu' | 'playing' | 'ended'>('menu');
-  const [score, setScore] = useState(0);
-  const [currentFish, setCurrentFish] = useState<Fish | null>(null);
-  const [fishPosition, setFishPosition] = useState(0);
-  const [timeLeft, setTimeLeft] = useState(30);
-  const [streak, setStreak] = useState(0);
-  const [bestScore, setBestScore] = useState(() => {
-    return parseInt(localStorage.getItem('fishingGameBestScore') || '0');
+  const [gameState, setGameState] = useState<GameState>({
+    mode: 'menu',
+    score: 0,
+    coins: 50,
+    level: 1,
+    experience: 0,
+    timeOfDay: 'day',
+    weather: 'sunny',
+    currentDepth: 1,
+    selectedBait: 'worm',
+    rodPosition: { x: 50, y: 10 },
+    hookPosition: { x: 50, y: 90 },
+    currentFish: null,
+    fightProgress: 0,
+    energy: 100,
+    combo: 0,
+    achievements: []
   });
-  const [catchZone, setCatchZone] = useState({ start: 40, end: 60 });
-  const [canCatch, setCanCatch] = useState(false);
+
+  const [selectedLocation, setSelectedLocation] = useState('pond');
+  const [castPower, setCastPower] = useState(0);
+  const [isCharging, setIsCharging] = useState(false);
+  const [waterAnimation, setWaterAnimation] = useState(0);
+  const [fishMovement, setFishMovement] = useState({ x: 0, y: 0 });
+  
   const gameLoopRef = useRef<number>();
-  const timerRef = useRef<number>();
   const { toast } = useToast();
 
-  const startGame = () => {
-    setGameState('playing');
-    setScore(0);
-    setStreak(0);
-    setTimeLeft(30);
-    spawnFish();
-    
-    // Game timer
-    timerRef.current = window.setInterval(() => {
-      setTimeLeft(prev => {
-        if (prev <= 1) {
-          endGame();
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-  };
-
-  const endGame = () => {
-    setGameState('ended');
-    setCurrentFish(null);
-    if (gameLoopRef.current) {
-      cancelAnimationFrame(gameLoopRef.current);
-    }
-    if (timerRef.current) {
-      clearInterval(timerRef.current);
-    }
-    
-    if (score > bestScore) {
-      setBestScore(score);
-      localStorage.setItem('fishingGameBestScore', score.toString());
-      toast({
-        title: "🏆 Neuer Rekord!",
-        description: `Fantastisch! Neuer Bestwert: ${score} Punkte!`
-      });
-    }
-  };
-
-  const spawnFish = () => {
-    const randomFish = fishTypes[Math.floor(Math.random() * fishTypes.length)];
-    setCurrentFish(randomFish);
-    setFishPosition(0);
-    setCanCatch(false);
-    
-    // Random catch zone
-    const zoneSize = 20;
-    const zoneStart = Math.random() * (80 - zoneSize) + 10;
-    setCatchZone({ start: zoneStart, end: zoneStart + zoneSize });
-    
-    animateFish(randomFish);
-  };
-
-  const animateFish = (fish: Fish) => {
-    const startTime = Date.now();
-    const duration = fish.speed;
-    
-    const animate = () => {
-      const elapsed = Date.now() - startTime;
-      const progress = Math.min(elapsed / duration, 1);
-      
-      const newPosition = progress * 100;
-      setFishPosition(newPosition);
-      
-      // Check if fish is in catch zone
-      setCanCatch(newPosition >= catchZone.start && newPosition <= catchZone.end);
-      
-      if (progress < 1 && gameState === 'playing') {
-        gameLoopRef.current = requestAnimationFrame(animate);
-      } else if (gameState === 'playing') {
-        // Fish escaped
-        setStreak(0);
-        setTimeout(spawnFish, 500);
-      }
-    };
-    
-    gameLoopRef.current = requestAnimationFrame(animate);
-  };
-
-  const attemptCatch = () => {
-    if (!currentFish || gameState !== 'playing') return;
-    
-    if (canCatch) {
-      // Successful catch!
-      const points = currentFish.points * (1 + streak * 0.1); // Bonus for streak
-      setScore(prev => prev + Math.floor(points));
-      setStreak(prev => prev + 1);
-      
-      toast({
-        title: `🎣 ${currentFish.name} gefangen!`,
-        description: `+${Math.floor(points)} Punkte! Streak: ${streak + 1}`
-      });
-      
-      if (gameLoopRef.current) {
-        cancelAnimationFrame(gameLoopRef.current);
-      }
-      
-      setTimeout(spawnFish, 300);
-    } else {
-      // Missed!
-      setStreak(0);
-      toast({
-        title: "🎯 Verpasst!",
-        description: "Timing war nicht richtig. Streak verloren!",
-        variant: "destructive"
-      });
-    }
-  };
-
+  // Water animation
   useEffect(() => {
-    return () => {
-      if (gameLoopRef.current) {
-        cancelAnimationFrame(gameLoopRef.current);
-      }
-      if (timerRef.current) {
-        clearInterval(timerRef.current);
-      }
+    const animate = () => {
+      setWaterAnimation(prev => (prev + 1) % 360);
+      requestAnimationFrame(animate);
     };
+    const animationId = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(animationId);
   }, []);
 
-  const resetGame = () => {
-    setGameState('menu');
-    setScore(0);
-    setStreak(0);
-    setCurrentFish(null);
-    if (gameLoopRef.current) {
-      cancelAnimationFrame(gameLoopRef.current);
-    }
-    if (timerRef.current) {
-      clearInterval(timerRef.current);
+  // Time and weather cycle
+  useEffect(() => {
+    const timeWeatherCycle = setInterval(() => {
+      setGameState(prev => {
+        const times: Array<'dawn' | 'day' | 'dusk' | 'night'> = ['dawn', 'day', 'dusk', 'night'];
+        const weathers: Array<'sunny' | 'cloudy' | 'rainy'> = ['sunny', 'cloudy', 'rainy'];
+        const newTime = times[(times.indexOf(prev.timeOfDay) + 1) % times.length];
+        const newWeather = Math.random() < 0.3 ? weathers[Math.floor(Math.random() * weathers.length)] : prev.weather;
+        
+        return { ...prev, timeOfDay: newTime, weather: newWeather };
+      });
+    }, 10000); // Change every 10 seconds
+    
+    return () => clearInterval(timeWeatherCycle);
+  }, []);
+
+  const getTimeIcon = () => {
+    switch (gameState.timeOfDay) {
+      case 'dawn': return '🌅';
+      case 'day': return '☀️';
+      case 'dusk': return '🌇';
+      case 'night': return '🌙';
     }
   };
+
+  const getWeatherIcon = () => {
+    switch (gameState.weather) {
+      case 'sunny': return '☀️';
+      case 'cloudy': return '☁️';
+      case 'rainy': return '🌧️';
+    }
+  };
+
+  const calculateFishSpawnChance = (fish: Fish) => {
+    let chance = fish.rarity;
+    
+    // Time preference bonus
+    if (fish.preferredTime === gameState.timeOfDay || fish.preferredTime === 'any') {
+      chance *= 1.5;
+    }
+    
+    // Weather preference bonus
+    if (fish.preferredWeather === gameState.weather || fish.preferredWeather === 'any') {
+      chance *= 1.3;
+    }
+    
+    // Depth bonus
+    if (fish.depth === gameState.currentDepth) {
+      chance *= 2;
+    }
+    
+    // Bait effectiveness
+    const selectedBaitObj = baits.find(b => b.id === gameState.selectedBait);
+    if (selectedBaitObj) {
+      chance *= selectedBaitObj.effectiveness[fish.behavior] || 1;
+    }
+    
+    return Math.min(chance, 0.9); // Cap at 90%
+  };
+
+  const startCasting = () => {
+    if (gameState.energy < 20) {
+      toast({
+        title: "Zu müde!",
+        description: "Du brauchst mehr Energie zum Angeln. Warte einen Moment.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setGameState(prev => ({ ...prev, mode: 'casting', energy: prev.energy - 20 }));
+    setIsCharging(true);
+    setCastPower(0);
+    
+    const chargeInterval = setInterval(() => {
+      setCastPower(prev => {
+        if (prev >= 100) {
+          clearInterval(chargeInterval);
+          setIsCharging(false);
+          performCast(100);
+          return 100;
+        }
+        return prev + 2;
+      });
+    }, 50);
+  };
+
+  const performCast = (power: number) => {
+    const depth = Math.min(Math.floor((power / 100) * locations.find(l => l.id === selectedLocation)!.depths.length) + 1, 7);
+    setGameState(prev => ({ ...prev, currentDepth: depth, mode: 'waiting' }));
+    
+    // Animate hook drop
+    const dropAnimation = setInterval(() => {
+      setGameState(prev => ({
+        ...prev,
+        hookPosition: {
+          x: 50 + (Math.random() - 0.5) * 10,
+          y: Math.min(prev.hookPosition.y + 5, 90)
+        }
+      }));
+    }, 100);
+
+    setTimeout(() => {
+      clearInterval(dropAnimation);
+      checkForFish();
+    }, 2000);
+  };
+
+  const checkForFish = () => {
+    const availableFish = fishTypes.filter(fish => {
+      const location = locations.find(l => l.id === selectedLocation)!;
+      return location.depths.includes(fish.depth);
+    });
+    
+    let caughtFish = null;
+    for (const fish of availableFish) {
+      const chance = calculateFishSpawnChance(fish);
+      if (Math.random() < chance) {
+        caughtFish = fish;
+        break;
+      }
+    }
+    
+    if (caughtFish) {
+      setGameState(prev => ({ ...prev, currentFish: caughtFish, mode: 'fight', fightProgress: 0 }));
+      setFishMovement({ x: Math.random() * 80 + 10, y: Math.random() * 30 + 60 });
+      startFishFight();
+    } else {
+      setTimeout(() => {
+        setGameState(prev => ({ ...prev, mode: 'playing' }));
+        toast({
+          title: "Kein Biss...",
+          description: "Versuche einen anderen Köder oder Angelplatz!"
+        });
+      }, 1000);
+    }
+  };
+
+  const startFishFight = () => {
+    const fightLoop = setInterval(() => {
+      setGameState(prev => {
+        if (prev.fightProgress >= 100) {
+          clearInterval(fightLoop);
+          completeCatch();
+          return prev;
+        }
+        
+        // Fish resistance based on size and behavior
+        const resistance = prev.currentFish ? {
+          tiny: 1, small: 2, medium: 4, large: 6, legendary: 10
+        }[prev.currentFish.size] : 1;
+        
+        const progress = Math.max(0, prev.fightProgress - resistance + 5);
+        return { ...prev, fightProgress: progress };
+      });
+    }, 200);
+  };
+
+  const pullRod = () => {
+    setGameState(prev => ({
+      ...prev,
+      fightProgress: Math.min(prev.fightProgress + 15, 100)
+    }));
+    
+    // Animate fish movement
+    setFishMovement(prev => ({
+      x: Math.max(10, Math.min(90, prev.x + (Math.random() - 0.5) * 20)),
+      y: Math.max(50, Math.min(90, prev.y + (Math.random() - 0.5) * 15))
+    }));
+  };
+
+  const completeCatch = () => {
+    if (!gameState.currentFish) return;
+    
+    const fish = gameState.currentFish;
+    const basePoints = fish.points;
+    const comboBonus = Math.floor(basePoints * (gameState.combo * 0.1));
+    const totalPoints = basePoints + comboBonus;
+    
+    const coinReward = Math.floor(totalPoints / 10);
+    const expReward = Math.floor(totalPoints / 5);
+    
+    setGameState(prev => ({
+      ...prev,
+      mode: 'playing',
+      score: prev.score + totalPoints,
+      coins: prev.coins + coinReward,
+      experience: prev.experience + expReward,
+      combo: prev.combo + 1,
+      currentFish: null,
+      energy: Math.min(prev.energy + 10, 100)
+    }));
+    
+    // Check for level up
+    const newLevel = Math.floor(gameState.experience / 100) + 1;
+    if (newLevel > gameState.level) {
+      setGameState(prev => ({ ...prev, level: newLevel }));
+      toast({
+        title: `🎉 Level ${newLevel}!`,
+        description: "Du bist aufgestiegen! Neue Köder verfügbar!"
+      });
+    }
+    
+    toast({
+      title: `🎣 ${fish.name} gefangen!`,
+      description: `+${totalPoints} Punkte (+${comboBonus} Combo) | +${coinReward} Münzen`,
+    });
+    
+    // Check achievements
+    checkAchievements(fish);
+  };
+
+  const checkAchievements = (fish: Fish) => {
+    const newAchievements = [];
+    
+    if (gameState.score + fish.points >= 1000 && !gameState.achievements.includes('score_1000')) {
+      newAchievements.push('score_1000');
+    }
+    
+    if (fish.size === 'legendary' && !gameState.achievements.includes('legendary_catch')) {
+      newAchievements.push('legendary_catch');
+    }
+    
+    if (gameState.combo >= 5 && !gameState.achievements.includes('combo_5')) {
+      newAchievements.push('combo_5');
+    }
+    
+    if (newAchievements.length > 0) {
+      setGameState(prev => ({
+        ...prev,
+        achievements: [...prev.achievements, ...newAchievements]
+      }));
+      
+      newAchievements.forEach(achievement => {
+        const achievements = {
+          'score_1000': { name: '1000 Punkte Master', reward: 50 },
+          'legendary_catch': { name: 'Legendärer Angler', reward: 100 },
+          'combo_5': { name: 'Combo Master', reward: 25 }
+        };
+        
+        toast({
+          title: `🏆 Achievement freigeschaltet!`,
+          description: `${achievements[achievement].name} (+${achievements[achievement].reward} Münzen)`
+        });
+      });
+    }
+  };
+
+  const buyBait = (baitId: string) => {
+    const bait = baits.find(b => b.id === baitId);
+    if (!bait || gameState.coins < bait.cost) return;
+    
+    setGameState(prev => ({
+      ...prev,
+      coins: prev.coins - bait.cost,
+      selectedBait: baitId
+    }));
+    
+    toast({
+      title: "Köder gekauft!",
+      description: `${bait.name} für ${bait.cost} Münzen`
+    });
+  };
+
+  const resetGame = () => {
+    setGameState({
+      mode: 'menu',
+      score: 0,
+      coins: 50,
+      level: 1,
+      experience: 0,
+      timeOfDay: 'day',
+      weather: 'sunny',
+      currentDepth: 1,
+      selectedBait: 'worm',
+      rodPosition: { x: 50, y: 10 },
+      hookPosition: { x: 50, y: 90 },
+      currentFish: null,
+      fightProgress: 0,
+      energy: 100,
+      combo: 0,
+      achievements: []
+    });
+  };
+
+  const startGame = () => {
+    setGameState(prev => ({ ...prev, mode: 'playing' }));
+  };
+
+  // Energy regeneration
+  useEffect(() => {
+    const energyRegen = setInterval(() => {
+      setGameState(prev => ({
+        ...prev,
+        energy: Math.min(prev.energy + 1, 100)
+      }));
+    }, 3000);
+    
+    return () => clearInterval(energyRegen);
+  }, []);
 
   return (
     <>
-      <MobileHeader title="Angel-Minispiel" />
+      <MobileHeader title="Angel-Abenteuer" />
       
       <div className="px-4 py-4 pb-20">
         
-        {/* Game Status Bar */}
-        {gameState === 'playing' && (
-          <div className="grid grid-cols-3 gap-3 mb-4">
-            <Card className="p-3 bg-slate-800/50 border-cyan-500/30 text-center">
-              <div className="text-cyan-300 text-lg font-bold">{score}</div>
-              <div className="text-xs text-gray-400">Punkte</div>
+        {/* Environment Status */}
+        <Card className="p-3 mb-4 bg-gradient-to-r from-blue-900/30 to-cyan-900/30 border-cyan-500/30">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <div className="text-center">
+                <div className="text-2xl">{getTimeIcon()}</div>
+                <div className="text-xs text-gray-400 capitalize">{gameState.timeOfDay}</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl">{getWeatherIcon()}</div>
+                <div className="text-xs text-gray-400 capitalize">{gameState.weather}</div>
+              </div>
+              <div className="text-center">
+                <div className="text-cyan-300 font-bold">Tiefe {gameState.currentDepth}</div>
+                <div className="text-xs text-gray-400">Meter</div>
+              </div>
+            </div>
+            <div className="text-right">
+              <div className="text-yellow-400 font-bold">{gameState.coins} 🪙</div>
+              <div className="text-cyan-300 text-sm">Level {gameState.level}</div>
+            </div>
+          </div>
+        </Card>
+
+        {gameState.mode === 'menu' && (
+          <div className="space-y-6">
+            {/* Main Menu */}
+            <Card className="p-6 bg-gradient-to-b from-blue-900/30 to-slate-900/30 border-cyan-500/30">
+              <div className="text-center space-y-4">
+                <Fish className="w-16 h-16 text-cyan-400 mx-auto" />
+                <h1 className="text-2xl font-bold text-cyan-300">Angel-Abenteuer</h1>
+                <p className="text-gray-300">Erkunde verschiedene Gewässer und fange legendäre Fische!</p>
+                
+                <div className="grid grid-cols-3 gap-3 my-6">
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-cyan-400">{gameState.score}</div>
+                    <div className="text-xs text-gray-400">Bester Score</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-yellow-400">{gameState.achievements.length}</div>
+                    <div className="text-xs text-gray-400">Achievements</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-green-400">{gameState.level}</div>
+                    <div className="text-xs text-gray-400">Level</div>
+                  </div>
+                </div>
+                
+                <Button 
+                  onClick={startGame}
+                  className="w-full bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700"
+                  size="lg"
+                >
+                  <Play className="w-5 h-5 mr-2" />
+                  Abenteuer starten
+                </Button>
+              </div>
             </Card>
-            <Card className="p-3 bg-slate-800/50 border-cyan-500/30 text-center">
-              <div className="text-orange-400 text-lg font-bold">{timeLeft}</div>
-              <div className="text-xs text-gray-400">Sekunden</div>
-            </Card>
-            <Card className="p-3 bg-slate-800/50 border-cyan-500/30 text-center">
-              <div className="text-green-400 text-lg font-bold">{streak}</div>
-              <div className="text-xs text-gray-400">Streak</div>
+            
+            {/* Location Selection */}
+            <Card className="p-4 bg-slate-800/30 border-cyan-500/20">
+              <h3 className="text-lg font-semibold text-cyan-300 mb-3">Angelplatz wählen</h3>
+              <div className="space-y-2">
+                {locations.map(location => (
+                  <Button
+                    key={location.id}
+                    variant={selectedLocation === location.id ? "default" : "outline"}
+                    className={`w-full justify-start ${selectedLocation === location.id ? 'bg-cyan-600' : 'border-cyan-500/30'}`}
+                    onClick={() => setSelectedLocation(location.id)}
+                  >
+                    <span className="text-xl mr-3">{location.emoji}</span>
+                    <div className="text-left">
+                      <div className="font-medium">{location.name}</div>
+                      <div className="text-xs opacity-75">{location.bonus}</div>
+                    </div>
+                  </Button>
+                ))}
+              </div>
             </Card>
           </div>
         )}
 
-        {/* Main Game Area */}
-        <Card className="p-6 bg-gradient-to-b from-blue-900/30 to-slate-900/30 border-cyan-500/30 min-h-[400px]">
-          
-          {gameState === 'menu' && (
-            <div className="text-center space-y-6">
-              <div>
-                <Fish className="w-16 h-16 text-cyan-400 mx-auto mb-4" />
-                <h1 className="text-2xl font-bold text-cyan-300 mb-2">Angel-Minispiel</h1>
-                <p className="text-gray-300">Fange Fische zur richtigen Zeit!</p>
-              </div>
-              
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-3 text-sm">
-                  {fishTypes.map(fish => (
-                    <div key={fish.id} className="flex items-center justify-between bg-slate-800/30 p-2 rounded">
-                      <span className="text-xl">{fish.emoji}</span>
-                      <span className="text-gray-300">{fish.name}</span>
-                      <Badge variant="outline" className="text-yellow-400">{fish.points}p</Badge>
-                    </div>
-                  ))}
-                </div>
-                
-                <div className="bg-slate-800/30 p-3 rounded-lg">
-                  <div className="flex items-center justify-between">
-                    <span className="text-gray-300">Bester Score:</span>
-                    <div className="flex items-center space-x-2">
-                      <Trophy className="w-4 h-4 text-yellow-400" />
-                      <span className="text-yellow-400 font-bold">{bestScore}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              <Button 
-                onClick={startGame}
-                className="w-full bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700"
-                size="lg"
-              >
-                <Play className="w-5 h-5 mr-2" />
-                Spiel starten
-              </Button>
+        {gameState.mode === 'playing' && (
+          <div className="space-y-4">
+            {/* Game Stats */}
+            <div className="grid grid-cols-4 gap-2">
+              <Card className="p-2 text-center bg-slate-800/50 border-cyan-500/30">
+                <div className="text-cyan-300 font-bold">{gameState.score}</div>
+                <div className="text-xs text-gray-400">Punkte</div>
+              </Card>
+              <Card className="p-2 text-center bg-slate-800/50 border-cyan-500/30">
+                <div className="text-green-400 font-bold">{gameState.energy}%</div>
+                <div className="text-xs text-gray-400">Energie</div>
+              </Card>
+              <Card className="p-2 text-center bg-slate-800/50 border-cyan-500/30">
+                <div className="text-orange-400 font-bold">{gameState.combo}</div>
+                <div className="text-xs text-gray-400">Combo</div>
+              </Card>
+              <Card className="p-2 text-center bg-slate-800/50 border-cyan-500/30">
+                <div className="text-yellow-400 font-bold">{gameState.coins}</div>
+                <div className="text-xs text-gray-400">Münzen</div>
+              </Card>
             </div>
-          )}
 
-          {gameState === 'playing' && (
-            <div className="space-y-6">
-              <div className="text-center">
-                <h2 className="text-xl font-bold text-cyan-300 mb-2">Fange den Fisch!</h2>
-                <p className="text-gray-300">Klicke wenn der Fisch in der grünen Zone ist</p>
+            {/* Fishing Area */}
+            <Card className="p-4 bg-gradient-to-b from-cyan-900/20 to-blue-900/40 border-cyan-500/30 min-h-[300px] relative overflow-hidden">
+              {/* Water Animation */}
+              <div 
+                className="absolute inset-0 opacity-30"
+                style={{
+                  background: `linear-gradient(${waterAnimation}deg, transparent 0%, rgba(34, 197, 94, 0.1) 50%, transparent 100%)`
+                }}
+              />
+              
+              {/* Rod and Line */}
+              <div 
+                className="absolute top-2 transition-all duration-1000"
+                style={{ left: `${gameState.rodPosition.x}%` }}
+              >
+                <div className="w-1 h-8 bg-yellow-700 rounded"></div>
               </div>
               
               {/* Fishing Line */}
-              <div className="relative h-32 bg-gradient-to-b from-cyan-900/20 to-blue-900/40 rounded-lg border border-cyan-500/30 overflow-hidden">
-                
-                {/* Catch Zone */}
-                <div 
-                  className="absolute top-0 bottom-0 bg-green-500/20 border-x-2 border-green-400"
-                  style={{
-                    left: `${catchZone.start}%`,
-                    width: `${catchZone.end - catchZone.start}%`
-                  }}
+              <svg className="absolute inset-0 w-full h-full pointer-events-none">
+                <line
+                  x1={`${gameState.rodPosition.x}%`}
+                  y1="10%"
+                  x2={`${gameState.hookPosition.x}%`}
+                  y2={`${gameState.hookPosition.y}%`}
+                  stroke="#64748b"
+                  strokeWidth="1"
                 />
-                
-                {/* Fish */}
-                {currentFish && (
-                  <div 
-                    className={`absolute top-1/2 transform -translate-y-1/2 transition-all duration-75 ${
-                      canCatch ? 'scale-125' : 'scale-100'
+              </svg>
+              
+              {/* Hook */}
+              <div 
+                className="absolute w-3 h-3 bg-gray-400 rounded-full transition-all duration-300"
+                style={{ 
+                  left: `${gameState.hookPosition.x}%`, 
+                  top: `${gameState.hookPosition.y}%`,
+                  transform: 'translate(-50%, -50%)'
+                }}
+              />
+              
+              {/* Current Fish */}
+              {gameState.currentFish && (
+                <div 
+                  className="absolute text-4xl transition-all duration-500 animate-pulse"
+                  style={{ 
+                    left: `${fishMovement.x}%`, 
+                    top: `${fishMovement.y}%`,
+                    transform: 'translate(-50%, -50%)'
+                  }}
+                >
+                  {gameState.currentFish.emoji}
+                </div>
+              )}
+              
+              {/* Depth Indicators */}
+              <div className="absolute right-2 top-2 space-y-1">
+                {Array.from({ length: 7 }, (_, i) => (
+                  <div
+                    key={i}
+                    className={`w-2 h-2 rounded-full ${
+                      i + 1 === gameState.currentDepth ? 'bg-cyan-400' : 'bg-gray-600'
                     }`}
-                    style={{ left: `${fishPosition}%` }}
-                  >
-                    <span className="text-4xl">{currentFish.emoji}</span>
-                  </div>
-                )}
-                
-                {/* Hook */}
-                <div className="absolute top-2 left-1/2 transform -translate-x-1/2">
-                  <Target className={`w-6 h-6 ${canCatch ? 'text-green-400' : 'text-gray-400'}`} />
-                </div>
+                  />
+                ))}
               </div>
-              
-              <Button 
-                onClick={attemptCatch}
-                className={`w-full h-16 text-lg font-bold ${
-                  canCatch 
-                    ? 'bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800' 
-                    : 'bg-gradient-to-r from-gray-600 to-gray-700'
-                }`}
-                size="lg"
-              >
-                🎣 FANGEN!
-              </Button>
-            </div>
-          )}
+            </Card>
 
-          {gameState === 'ended' && (
-            <div className="text-center space-y-6">
-              <Trophy className="w-16 h-16 text-yellow-400 mx-auto" />
-              
-              <div>
-                <h2 className="text-2xl font-bold text-cyan-300 mb-2">Spiel beendet!</h2>
-                <div className="space-y-2">
-                  <div className="text-3xl font-bold text-yellow-400">{score} Punkte</div>
-                  {score === bestScore && score > 0 && (
-                    <Badge className="bg-yellow-500/20 text-yellow-400">🏆 Neuer Rekord!</Badge>
-                  )}
-                </div>
-              </div>
-              
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div className="bg-slate-800/30 p-3 rounded">
-                  <div className="text-gray-400">Endpunkte</div>
-                  <div className="text-cyan-300 font-bold">{score}</div>
-                </div>
-                <div className="bg-slate-800/30 p-3 rounded">
-                  <div className="text-gray-400">Bester Score</div>
-                  <div className="text-yellow-400 font-bold">{bestScore}</div>
-                </div>
-              </div>
-              
-              <div className="space-y-3">
+            {/* Controls */}
+            <div className="space-y-3">
+              {gameState.mode === 'playing' && (
                 <Button 
-                  onClick={startGame}
-                  className="w-full bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700"
+                  onClick={startCasting}
+                  disabled={gameState.energy < 20}
+                  className="w-full h-16 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-lg font-bold"
                 >
-                  <Play className="w-5 h-5 mr-2" />
-                  Nochmal spielen
+                  🎣 Auswerfen ({gameState.energy}% Energie)
                 </Button>
-                <Button 
-                  onClick={resetGame}
-                  variant="outline"
-                  className="w-full border-cyan-500/30"
-                >
-                  <RotateCcw className="w-5 h-5 mr-2" />
-                  Zurück zum Menü
-                </Button>
-              </div>
+              )}
+              
+              {gameState.mode === 'casting' && (
+                <div className="text-center space-y-2">
+                  <div className="text-lg font-bold text-cyan-300">Kraft: {castPower}%</div>
+                  <Progress value={castPower} className="w-full h-4" />
+                  <Button 
+                    onClick={() => {
+                      setIsCharging(false);
+                      performCast(castPower);
+                    }}
+                    className="w-full bg-gradient-to-r from-green-600 to-green-700"
+                  >
+                    Loslassen!
+                  </Button>
+                </div>
+              )}
+              
+              {gameState.mode === 'waiting' && (
+                <div className="text-center">
+                  <div className="text-lg text-cyan-300 animate-pulse">Warte auf einen Biss...</div>
+                  <div className="text-sm text-gray-400">Köder: {baits.find(b => b.id === gameState.selectedBait)?.name}</div>
+                </div>
+              )}
+              
+              {gameState.mode === 'fight' && gameState.currentFish && (
+                <div className="space-y-3">
+                  <div className="text-center">
+                    <div className="text-xl font-bold text-cyan-300">{gameState.currentFish.name}</div>
+                    <div className="text-sm text-gray-400">Ziehe die Angel! {Math.floor(gameState.fightProgress)}%</div>
+                  </div>
+                  <Progress value={gameState.fightProgress} className="w-full h-4" />
+                  <Button 
+                    onClick={pullRod}
+                    className="w-full h-16 bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 text-lg font-bold"
+                  >
+                    💪 ZIEHEN!
+                  </Button>
+                </div>
+              )}
             </div>
-          )}
-        </Card>
+
+            {/* Bait Shop */}
+            <Card className="p-4 bg-slate-800/30 border-cyan-500/20">
+              <h3 className="text-lg font-semibold text-cyan-300 mb-3">Köder-Shop</h3>
+              <div className="grid grid-cols-2 gap-2">
+                {baits.map(bait => (
+                  <Button
+                    key={bait.id}
+                    variant={gameState.selectedBait === bait.id ? "default" : "outline"}
+                    className={`justify-start text-sm ${
+                      gameState.selectedBait === bait.id ? 'bg-cyan-600' : 'border-cyan-500/30'
+                    } ${gameState.coins < bait.cost && bait.cost > 0 ? 'opacity-50' : ''}`}
+                    onClick={() => bait.cost === 0 ? setGameState(prev => ({ ...prev, selectedBait: bait.id })) : buyBait(bait.id)}
+                    disabled={gameState.coins < bait.cost && bait.cost > 0}
+                  >
+                    <span className="mr-2">{bait.emoji}</span>
+                    <div>
+                      <div className="font-medium">{bait.name}</div>
+                      <div className="text-xs">{bait.cost === 0 ? 'Kostenlos' : `${bait.cost} 🪙`}</div>
+                    </div>
+                  </Button>
+                ))}
+              </div>
+            </Card>
+          </div>
+        )}
         
-        {/* Game Instructions */}
-        {gameState === 'menu' && (
-          <Card className="mt-4 p-4 bg-slate-800/30 border-cyan-500/20">
-            <h3 className="text-lg font-semibold text-cyan-300 mb-2">Spielregeln</h3>
-            <ul className="text-sm text-gray-300 space-y-1">
-              <li>• Klicke "FANGEN!" wenn der Fisch in der grünen Zone ist</li>
-              <li>• Verschiedene Fische geben unterschiedliche Punkte</li>
-              <li>• Aufeinanderfolgende Fänge erhöhen den Streak-Bonus</li>
-              <li>• Du hast 30 Sekunden Zeit</li>
-              <li>• Versuche deinen Bestwert zu schlagen!</li>
-            </ul>
-          </Card>
+        {/* Back to Menu */}
+        {gameState.mode === 'playing' && (
+          <Button 
+            onClick={resetGame}
+            variant="outline"
+            className="w-full border-cyan-500/30 mt-4"
+          >
+            <RotateCcw className="w-4 h-4 mr-2" />
+            Zurück zum Menü
+          </Button>
         )}
       </div>
     </>
