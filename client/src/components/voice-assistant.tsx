@@ -28,6 +28,7 @@ export default function VoiceAssistant({ isOpen, onClose }: VoiceAssistantProps)
   const [recordedAudio, setRecordedAudio] = useState<Blob | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [currentMessage, setCurrentMessage] = useState("");
+  const [activeCategory, setActiveCategory] = useState<string>("all");
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([
     {
       id: 0,
@@ -38,6 +39,15 @@ export default function VoiceAssistant({ isOpen, onClose }: VoiceAssistantProps)
   ]);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
+
+  // Kategorien für Techniken
+  const categories = [
+    { id: "all", name: "Alle", icon: "🎣" },
+    { id: "techniques", name: "Techniken", icon: "🪝" },
+    { id: "bait", name: "Köder", icon: "🐛" },
+    { id: "equipment", name: "Ausrüstung", icon: "⚙️" },
+    { id: "weather", name: "Wetter", icon: "🌤️" }
+  ];
 
   // Hole Kontext-Daten für Sigi
   const { data: catches = [] } = useQuery({ queryKey: ['/api/catches'] });
@@ -204,25 +214,25 @@ export default function VoiceAssistant({ isOpen, onClose }: VoiceAssistantProps)
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-2xl mx-4 h-[80vh] flex flex-col bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
+      <DialogContent className="sm:max-w-2xl mx-4 h-[80vh] flex flex-col bg-gradient-to-br from-gray-900/95 via-blue-900/90 to-cyan-900/95 backdrop-blur-md border border-cyan-500/30 shadow-2xl">
         
         {/* Header */}
-        <DialogHeader className="flex-shrink-0 pb-4 border-b border-gray-200 dark:border-gray-700">
+        <DialogHeader className="flex-shrink-0 pb-4 border-b border-cyan-500/30">
           <DialogTitle className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <img 
                 src={sigiAvatar} 
-                className="w-8 h-8 rounded-full" 
+                className="w-8 h-8 rounded-full border-2 border-cyan-400/50" 
                 alt="Sigi" 
               />
-              <span className="text-lg font-semibold text-gray-900 dark:text-white">Sigi</span>
+              <span className="text-lg font-semibold text-white">Sigi</span>
             </div>
             <div className="flex items-center space-x-2">
               <Button 
                 variant="ghost" 
                 size="sm" 
                 onClick={() => setIsMuted(!isMuted)}
-                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                className="text-cyan-300 hover:text-white hover:bg-cyan-500/20"
               >
                 {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
               </Button>
@@ -230,13 +240,40 @@ export default function VoiceAssistant({ isOpen, onClose }: VoiceAssistantProps)
                 variant="ghost" 
                 size="sm" 
                 onClick={handleClose}
-                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                className="text-cyan-300 hover:text-white hover:bg-cyan-500/20"
               >
                 <X className="w-4 h-4" />
               </Button>
             </div>
           </DialogTitle>
         </DialogHeader>
+
+        {/* Kategorie Buttons für Techniken */}
+        <div className="flex-shrink-0 px-4 py-3 border-b border-cyan-500/20">
+          <div className="flex gap-2 overflow-x-auto pb-2">
+            {categories.map((category) => (
+              <Button
+                key={category.id}
+                variant={activeCategory === category.id ? "default" : "outline"}
+                size="sm"
+                onClick={() => {
+                  setActiveCategory(category.id);
+                  if (category.id !== "all") {
+                    sendToSigi(`Erzählen Sie mir mehr über ${category.name} beim Angeln`);
+                  }
+                }}
+                className={`flex-shrink-0 flex items-center gap-2 ${
+                  activeCategory === category.id
+                    ? 'bg-cyan-500 hover:bg-cyan-600 text-white border-cyan-400'
+                    : 'bg-gray-800/50 hover:bg-gray-700/50 text-cyan-300 border-cyan-500/30 hover:border-cyan-400/50'
+                }`}
+              >
+                <span>{category.icon}</span>
+                <span className="text-xs">{category.name}</span>
+              </Button>
+            ))}
+          </div>
+        </div>
         
         {/* Chat Messages */}
         <div className="flex-1 overflow-y-auto py-4 space-y-4">
@@ -252,8 +289,8 @@ export default function VoiceAssistant({ isOpen, onClose }: VoiceAssistantProps)
                 <div
                   className={`px-4 py-3 rounded-2xl ${
                     msg.type === 'user'
-                      ? 'bg-blue-500 text-white'
-                      : 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white'
+                      ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg'
+                      : 'bg-gray-800/70 backdrop-blur-sm text-cyan-100 border border-cyan-500/20'
                   }`}
                 >
                   <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.message}</p>
@@ -266,14 +303,14 @@ export default function VoiceAssistant({ isOpen, onClose }: VoiceAssistantProps)
             <div className="flex justify-start">
               <div className="flex items-start space-x-3 max-w-[80%]">
                 <img src={sigiAvatar} className="w-6 h-6 rounded-full flex-shrink-0 mt-1" alt="Sigi" />
-                <div className="px-4 py-3 rounded-2xl bg-gray-100 dark:bg-gray-800">
+                <div className="px-4 py-3 rounded-2xl bg-gray-800/70 backdrop-blur-sm border border-cyan-500/20">
                   <div className="flex items-center space-x-2">
                     <div className="flex space-x-1">
-                      <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce"></div>
-                      <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                      <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                      <div className="w-2 h-2 bg-cyan-400 rounded-full animate-bounce"></div>
+                      <div className="w-2 h-2 bg-cyan-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                      <div className="w-2 h-2 bg-cyan-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
                     </div>
-                    <span className="text-xs text-gray-500">Sigi tippt...</span>
+                    <span className="text-xs text-cyan-300">Sigi tippt...</span>
                   </div>
                 </div>
               </div>
@@ -282,16 +319,16 @@ export default function VoiceAssistant({ isOpen, onClose }: VoiceAssistantProps)
         </div>
 
         {/* Input Area */}
-        <div className="flex-shrink-0 pt-4 border-t border-gray-200 dark:border-gray-700">
+        <div className="flex-shrink-0 pt-4 border-t border-cyan-500/30">
           <div className="flex items-end space-x-2">
-            <div className="flex-1 min-h-[44px] max-h-32 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-800 focus-within:border-blue-500 dark:focus-within:border-blue-400">
+            <div className="flex-1 min-h-[44px] max-h-32 border border-cyan-500/30 rounded-xl bg-gray-800/50 backdrop-blur-sm focus-within:border-cyan-400 focus-within:bg-gray-800/70">
               <textarea
                 value={currentMessage}
                 onChange={(e) => setCurrentMessage(e.target.value)}
                 onKeyDown={handleKeyPress}
                 placeholder="Nachricht an Sigi..."
                 disabled={isProcessing}
-                className="w-full px-4 py-3 bg-transparent border-none outline-none resize-none text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                className="w-full px-4 py-3 bg-transparent border-none outline-none resize-none text-white placeholder-cyan-300/70"
                 rows={1}
               />
             </div>
@@ -303,8 +340,8 @@ export default function VoiceAssistant({ isOpen, onClose }: VoiceAssistantProps)
               size="sm"
               className={`w-11 h-11 rounded-xl transition-colors ${
                 isRecording 
-                  ? 'bg-red-500 hover:bg-red-600 text-white' 
-                  : 'bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-300'
+                  ? 'bg-red-500 hover:bg-red-600 text-white border border-red-400' 
+                  : 'bg-gray-800/70 hover:bg-gray-700/80 text-cyan-300 border border-cyan-500/30 hover:border-cyan-400'
               }`}
             >
               {isRecording ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
@@ -315,7 +352,7 @@ export default function VoiceAssistant({ isOpen, onClose }: VoiceAssistantProps)
               onClick={sendTextMessage}
               disabled={isProcessing || !currentMessage.trim()}
               size="sm"
-              className="w-11 h-11 rounded-xl bg-blue-500 hover:bg-blue-600 disabled:bg-gray-300 dark:disabled:bg-gray-600 text-white"
+              className="w-11 h-11 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 disabled:from-gray-600 disabled:to-gray-700 text-white border border-cyan-400 hover:border-cyan-300"
             >
               <Send className="w-4 h-4" />
             </Button>
@@ -323,9 +360,16 @@ export default function VoiceAssistant({ isOpen, onClose }: VoiceAssistantProps)
           
           {/* Status */}
           {isRecording && (
-            <div className="mt-2 flex items-center justify-center space-x-2 text-sm text-red-500">
-              <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+            <div className="mt-2 flex items-center justify-center space-x-2 text-sm text-red-400">
+              <div className="w-2 h-2 bg-red-400 rounded-full animate-pulse"></div>
               <span>Aufnahme läuft...</span>
+            </div>
+          )}
+          
+          {/* Aktive Kategorie Info */}
+          {activeCategory !== "all" && (
+            <div className="mt-2 flex items-center justify-center space-x-2 text-xs text-cyan-300/80">
+              <span>Aktive Kategorie: {categories.find(c => c.id === activeCategory)?.name}</span>
             </div>
           )}
         </div>
