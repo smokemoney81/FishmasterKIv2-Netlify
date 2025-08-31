@@ -86,9 +86,23 @@ export default function Home() {
             {time.toLocaleTimeString("de-DE")}
           </h2>
           <div className="mb-4">{renderWeatherIcon()}</div>
-          <p className="text-cyan-300 text-sm">
+          <p className="text-cyan-300 text-sm mb-4">
             Perfekte Zeit zum Angeln! 🎣
           </p>
+          
+          {/* Button für KI-Assistent */}
+          <Button
+            className="px-6 py-3 bg-green-500 text-white font-bold rounded-lg shadow-lg hover:bg-green-600 transition"
+            onClick={() => {
+              // Öffnet das Sigi Chat
+              const sigiButton = document.querySelector('[data-testid="sigi-chat-button"]') as HTMLButtonElement;
+              if (sigiButton) {
+                sigiButton.click();
+              }
+            }}
+          >
+            🎤 KI-Assistent starten
+          </Button>
         </div>
       </section>
       

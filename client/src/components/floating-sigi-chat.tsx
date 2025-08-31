@@ -267,8 +267,8 @@ export default function FloatingSigiChat() {
         {!isOpen && (
           <Button
             onClick={() => setIsOpen(true)}
+            data-testid="sigi-chat-button"
             className="w-16 h-16 rounded-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 shadow-2xl border-2 border-cyan-300/30 backdrop-blur-sm transition-all duration-300 hover:scale-110"
-            data-testid="button-open-sigi"
           >
             <div className="relative">
               <img 
