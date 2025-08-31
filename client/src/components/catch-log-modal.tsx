@@ -115,7 +115,7 @@ export default function CatchLogModal({ isOpen, onClose }: CatchLogModalProps) {
     if (result.successful && result.successful.length > 0) {
       const uploadedFile = result.successful[0];
       const photoUrl = uploadedFile.uploadURL;
-      setFormData(prev => ({ ...prev, photoUrl }));
+      setFormData(prev => ({ ...prev, photoUrl: photoUrl || "" }));
       toast({
         title: "Photo uploaded!",
         description: "Your catch photo has been uploaded successfully.",
