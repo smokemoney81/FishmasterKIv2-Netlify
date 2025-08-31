@@ -1,0 +1,947 @@
+const express = require('express');
+const WebSocket = require('ws');
+const fetch = require('node-fetch');
+const fs = require('fs').promises;
+const FormData = require('form-data');
+
+class OpenAISpeechAgent {
+  constructor(config) {
+    this.config = config;
+    this.app = express();
+    this.sessions = new Map();
+    this.openaiApiKey = process.env.OPENAI_API_KEY;
+    
+    if (!this.openaiApiKey) {
+      throw new Error('OPENAI_API_KEY environment variable is required');
+    }
+    
+    this.initializeServer();
+  }
+
+  initializeServer() {
+    this.app.use(express.static('public'));
+    this.app.use(express.json({ limit: '50mb' }));
+    this.app.use(express.raw({ type: 'audio/*', limit: '50mb' }));
+
+    // Main web interface route
+    this.app.get('/', (req, res) => {
+      res.send(this.generateHTMLInterface());
+    });
+
+    // Configuration endpoint
+    this.app.get('/api/config', (req, res) => {
+      res.json({
+        ...this.config.speechToSpeechAgent,
+        openai: {
+          models: {
+            chat: 'gpt-4-turbo-preview',
+            speech: 'tts-1',
+            whisper: 'whisper-1'
+          },
+          voice: 'alloy'
+        }
+      });
+    });
+
+    // Audio transcription endpoint
+    this.app.post('/api/transcribe', async (req, res) => {
+      try {
+        const audioBuffer = req.body;
+        const transcription = await this.transcribeWithWhisper(audioBuffer);
+        res.json({ transcript: transcription });
+      } catch (error) {
+        console.error('Transcription error:', error);
+        res.status(500).json({ error: 'Transcription failed' });
+      }
+    });
+
+    // Text-to-speech endpoint
+    this.app.post('/api/speak', async (req, res) => {
+      try {
+        const { text } = req.body;
+        const audioBuffer = await this.generateSpeechWithOpenAI(text);
+        
+        res.setHeader('Content-Type', 'audio/mpeg');
+        res.setHeader('Content-Length', audioBuffer.length);
+        res.send(audioBuffer);
+      } catch (error) {
+        console.error('Speech generation error:', error);
+        res.status(500).json({ error: 'Speech generation failed' });
+      }
+    });
+
+    // Start HTTP server
+    const server = this.app.listen(this.config.speechToSpeechAgent.deployment.ports.http, () => {
+      console.log(`OpenAI Speech Agent running on port ${this.config.speechToSpeechAgent.deployment.ports.http}`);
+    });
+
+    // Initialize WebSocket server
+    this.wss = new WebSocket.Server({ 
+      port: this.config.speechToSpeechAgent.deployment.ports.websocket 
+    });
+
+    this.wss.on('connection', (ws) => {
+      this.handleWebSocketConnection(ws);
+    });
+
+    console.log(`WebSocket server running on port ${this.config.speechToSpeechAgent.deployment.ports.websocket}`);
+  }
+
+  handleWebSocketConnection(ws) {
+    const sessionId = this.generateSessionId();
+    const session = {
+      id: sessionId,
+      ws: ws,
+      context: this.initializeConversationContext(),
+      startTime: Date.now(),
+      lastActivity: Date.now(),
+      conversationHistory: []
+    };
+
+    this.sessions.set(sessionId, session);
+    console.log(`New session created: ${sessionId}`);
+
+    ws.on('message', async (message) => {
+      try {
+        const data = JSON.parse(message);
+        await this.processMessage(session, data);
+      } catch (error) {
+        console.error('Message processing error:', error);
+        this.sendError(ws, 'Message processing failed');
+      }
+    });
+
+    ws.on('close', () => {
+      this.sessions.delete(sessionId);
+      console.log(`Session ended: ${sessionId}`);
+    });
+
+    // Send greeting message
+    if (this.config.speechToSpeechAgent.conversationFlow.greeting.enabled) {
+      setTimeout(() => {
+        this.sendResponse(ws, {
+          type: 'greeting',
+          text: this.config.speechToSpeechAgent.conversationFlow.greeting.message,
+          generateAudio: true
+        });
+      }, 1000);
+    }
+  }
+
+  initializeConversationContext() {
+    return [
+      {
+        role: 'system',
+        content: this.config.speechToSpeechAgent.conversationEngine.systemPrompt || 
+                'Sie sind ein hilfsreicher KI-Assistent, der natürliche Gespräche auf Deutsch führt. Antworten Sie freundlich, informativ und präzise.'
+      }
+    ];
+  }
+
+  async processMessage(session, data) {
+    session.lastActivity = Date.now();
+
+    switch (data.type) {
+      case 'audio_input':
+        await this.processAudioInput(session, data);
+        break;
+      case 'text_input':
+        await this.processTextInput(session, data);
+        break;
+      case 'conversation_request':
+        await this.processConversationRequest(session, data);
+        break;
+      default:
+        this.sendError(session.ws, 'Unknown message type');
+    }
+  }
+
+  async processAudioInput(session, data) {
+    try {
+      this.sendStatus(session.ws, 'Processing audio...');
+
+      // Convert base64 audio to buffer
+      const audioBuffer = Buffer.from(data.audioData, 'base64');
+      
+      // Transcribe using OpenAI Whisper
+      const transcript = await this.transcribeWithWhisper(audioBuffer);
+      
+      if (!transcript || transcript.trim().length === 0) {
+        this.sendStatus(session.ws, 'No speech detected');
+        return;
+      }
+
+      console.log(`Transcribed: ${transcript}`);
+
+      // Process the transcribed text
+      await this.processTranscribedText(session, transcript);
+
+    } catch (error) {
+      console.error('Audio processing error:', error);
+      this.sendError(session.ws, 'Audio processing failed');
+    }
+  }
+
+  async processTextInput(session, data) {
+    try {
+      await this.processTranscribedText(session, data.text);
+    } catch (error) {
+      console.error('Text processing error:', error);
+      this.sendError(session.ws, 'Text processing failed');
+    }
+  }
+
+  async processTranscribedText(session, text) {
+    try {
+      this.sendStatus(session.ws, 'Generating response...');
+
+      // Add user message to context
+      session.context.push({
+        role: 'user',
+        content: text
+      });
+
+      // Generate response using OpenAI GPT
+      const response = await this.generateResponseWithOpenAI(session.context);
+      
+      // Add assistant response to context
+      session.context.push({
+        role: 'assistant',
+        content: response
+      });
+
+      // Manage context window size
+      this.manageContextWindow(session);
+
+      // Add to conversation history for display
+      session.conversationHistory.push(
+        { role: 'user', content: text, timestamp: Date.now() },
+        { role: 'assistant', content: response, timestamp: Date.now() }
+      );
+
+      // Send response back to client
+      this.sendResponse(session.ws, {
+        type: 'conversation_response',
+        text: response,
+        userInput: text,
+        generateAudio: true
+      });
+
+    } catch (error) {
+      console.error('Text processing error:', error);
+      this.sendError(session.ws, this.config.speechToSpeechAgent.conversationFlow.errorHandling.generalError);
+    }
+  }
+
+  async transcribeWithWhisper(audioBuffer) {
+    try {
+      const formData = new FormData();
+      formData.append('file', audioBuffer, {
+        filename: 'audio.wav',
+        contentType: 'audio/wav'
+      });
+      formData.append('model', 'whisper-1');
+      formData.append('language', 'de');
+
+      const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${this.openaiApiKey}`,
+          ...formData.getHeaders()
+        },
+        body: formData
+      });
+
+      if (!response.ok) {
+        throw new Error(`Whisper API error: ${response.status} ${response.statusText}`);
+      }
+
+      const result = await response.json();
+      return result.text;
+
+    } catch (error) {
+      console.error('Whisper transcription error:', error);
+      throw error;
+    }
+  }
+
+  async generateResponseWithOpenAI(context) {
+    try {
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${this.openaiApiKey}`
+        },
+        body: JSON.stringify({
+          model: 'gpt-4-turbo-preview',
+          messages: context,
+          max_tokens: this.config.speechToSpeechAgent.conversationEngine.maxTokens || 150,
+          temperature: this.config.speechToSpeechAgent.conversationEngine.temperature || 0.7,
+          presence_penalty: 0.6,
+          frequency_penalty: 0.3
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(`OpenAI API error: ${response.status} - ${errorData.error?.message || response.statusText}`);
+      }
+
+      const result = await response.json();
+      return result.choices[0].message.content.trim();
+
+    } catch (error) {
+      console.error('OpenAI chat completion error:', error);
+      throw error;
+    }
+  }
+
+  async generateSpeechWithOpenAI(text) {
+    try {
+      const response = await fetch('https://api.openai.com/v1/audio/speech', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${this.openaiApiKey}`
+        },
+        body: JSON.stringify({
+          model: 'tts-1',
+          input: text,
+          voice: this.config.speechToSpeechAgent.speechSynthesis?.voice?.name || 'alloy',
+          speed: this.config.speechToSpeechAgent.speechSynthesis?.voice?.rate || 1.0,
+          response_format: 'mp3'
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`OpenAI TTS API error: ${response.status} ${response.statusText}`);
+      }
+
+      return await response.buffer();
+
+    } catch (error) {
+      console.error('OpenAI speech generation error:', error);
+      throw error;
+    }
+  }
+
+  manageContextWindow(session) {
+    const maxMessages = 20; // Keep last 20 messages plus system message
+    
+    if (session.context.length > maxMessages + 1) {
+      // Keep system message and last maxMessages messages
+      const systemMessage = session.context[0];
+      const recentMessages = session.context.slice(-(maxMessages));
+      session.context = [systemMessage, ...recentMessages];
+    }
+  }
+
+  sendResponse(ws, data) {
+    if (ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify({
+        ...data,
+        timestamp: Date.now(),
+        sessionId: this.getSessionByWebSocket(ws)?.id
+      }));
+    }
+  }
+
+  sendStatus(ws, status) {
+    this.sendResponse(ws, {
+      type: 'status',
+      message: status
+    });
+  }
+
+  sendError(ws, errorMessage) {
+    this.sendResponse(ws, {
+      type: 'error',
+      message: errorMessage,
+      generateAudio: true
+    });
+  }
+
+  getSessionByWebSocket(ws) {
+    for (const session of this.sessions.values()) {
+      if (session.ws === ws) {
+        return session;
+      }
+    }
+    return null;
+  }
+
+  generateSessionId() {
+    return Date.now().toString(36) + Math.random().toString(36).substr(2);
+  }
+
+  generateHTMLInterface() {
+    return `
+    <!DOCTYPE html>
+    <html lang="de">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>OpenAI Speech-to-Speech Agent</title>
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+                color: white;
+                min-height: 100vh;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 20px;
+            }
+
+            .container {
+                width: 100%;
+                max-width: 900px;
+                background: rgba(255, 255, 255, 0.1);
+                backdrop-filter: blur(20px);
+                border-radius: 24px;
+                padding: 40px;
+                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+            }
+
+            .header {
+                text-align: center;
+                margin-bottom: 40px;
+            }
+
+            .header h1 {
+                font-size: 2.5em;
+                font-weight: 700;
+                margin-bottom: 10px;
+                background: linear-gradient(45deg, #fff, #a8edea);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+            }
+
+            .header p {
+                font-size: 1.1em;
+                opacity: 0.9;
+                font-weight: 300;
+            }
+
+            .status-panel {
+                text-align: center;
+                padding: 20px;
+                margin: 30px 0;
+                background: rgba(255, 255, 255, 0.15);
+                border-radius: 16px;
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                transition: all 0.3s ease;
+            }
+
+            .status-panel.recording {
+                background: rgba(255, 100, 100, 0.2);
+                animation: pulse 2s infinite;
+            }
+
+            .status-panel.processing {
+                background: rgba(255, 200, 0, 0.2);
+            }
+
+            .controls {
+                display: flex;
+                justify-content: center;
+                gap: 20px;
+                margin: 40px 0;
+                flex-wrap: wrap;
+            }
+
+            .btn {
+                padding: 16px 32px;
+                border: none;
+                border-radius: 50px;
+                background: rgba(255, 255, 255, 0.2);
+                color: white;
+                font-size: 16px;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                backdrop-filter: blur(10px);
+                border: 1px solid rgba(255, 255, 255, 0.3);
+                min-width: 140px;
+            }
+
+            .btn:hover {
+                background: rgba(255, 255, 255, 0.3);
+                transform: translateY(-2px);
+                box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            }
+
+            .btn:disabled {
+                opacity: 0.5;
+                cursor: not-allowed;
+                transform: none;
+                box-shadow: none;
+            }
+
+            .btn.primary {
+                background: linear-gradient(45deg, #667eea, #764ba2);
+                border: none;
+            }
+
+            .btn.danger {
+                background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+                border: none;
+            }
+
+            .conversation {
+                height: 400px;
+                overflow-y: auto;
+                background: rgba(0, 0, 0, 0.3);
+                border-radius: 16px;
+                padding: 20px;
+                margin: 30px 0;
+                border: 1px solid rgba(255, 255, 255, 0.1);
+            }
+
+            .conversation::-webkit-scrollbar {
+                width: 6px;
+            }
+
+            .conversation::-webkit-scrollbar-track {
+                background: rgba(255, 255, 255, 0.1);
+                border-radius: 3px;
+            }
+
+            .conversation::-webkit-scrollbar-thumb {
+                background: rgba(255, 255, 255, 0.3);
+                border-radius: 3px;
+            }
+
+            .message {
+                margin: 15px 0;
+                padding: 16px 20px;
+                border-radius: 18px;
+                max-width: 80%;
+                word-wrap: break-word;
+                line-height: 1.5;
+                animation: fadeIn 0.3s ease;
+            }
+
+            .message.user {
+                background: linear-gradient(45deg, #667eea, #764ba2);
+                margin-left: auto;
+                text-align: right;
+            }
+
+            .message.assistant {
+                background: rgba(255, 255, 255, 0.2);
+                border: 1px solid rgba(255, 255, 255, 0.3);
+            }
+
+            .message.system {
+                background: rgba(255, 255, 255, 0.1);
+                text-align: center;
+                margin: 10px auto;
+                max-width: 60%;
+                font-style: italic;
+                opacity: 0.8;
+            }
+
+            .audio-controls {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                gap: 15px;
+                margin: 20px 0;
+            }
+
+            .volume-control {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+
+            .volume-slider {
+                width: 100px;
+                accent-color: #667eea;
+            }
+
+            @keyframes pulse {
+                0%, 100% { opacity: 1; }
+                50% { opacity: 0.7; }
+            }
+
+            @keyframes fadeIn {
+                from { opacity: 0; transform: translateY(10px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+
+            .footer {
+                text-align: center;
+                margin-top: 30px;
+                padding-top: 20px;
+                border-top: 1px solid rgba(255, 255, 255, 0.2);
+                opacity: 0.7;
+                font-size: 0.9em;
+            }
+
+            @media (max-width: 768px) {
+                .container {
+                    padding: 20px;
+                    margin: 10px;
+                }
+                
+                .controls {
+                    flex-direction: column;
+                    align-items: center;
+                }
+                
+                .btn {
+                    width: 100%;
+                    max-width: 280px;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <h1>🎤 OpenAI Speech Agent</h1>
+                <p>Powered by GPT-4, Whisper & TTS</p>
+            </div>
+            
+            <div class="status-panel" id="status">
+                Ready to start conversation
+            </div>
+
+            <div class="controls">
+                <button class="btn primary" id="startBtn" onclick="startConversation()">
+                    Start Conversation
+                </button>
+                <button class="btn danger" id="stopBtn" onclick="stopConversation()" disabled>
+                    Stop Conversation
+                </button>
+                <button class="btn" id="muteBtn" onclick="toggleMute()" disabled>
+                    🔊 Audio On
+                </button>
+            </div>
+
+            <div class="audio-controls">
+                <div class="volume-control">
+                    <span>🔉</span>
+                    <input type="range" class="volume-slider" id="volumeSlider" 
+                           min="0" max="1" step="0.1" value="0.8" 
+                           onchange="setVolume(this.value)">
+                    <span>🔊</span>
+                </div>
+            </div>
+
+            <div class="conversation" id="conversation">
+                <div class="message system">
+                    Welcome! Click "Start Conversation" to begin speaking with the AI.
+                </div>
+            </div>
+
+            <div class="footer">
+                <p>OpenAI Speech-to-Speech Agent | Real-time AI Conversations</p>
+            </div>
+        </div>
+
+        <script>
+            let ws = null;
+            let mediaRecorder = null;
+            let audioChunks = [];
+            let isRecording = false;
+            let isMuted = false;
+            let audioContext = null;
+            let currentVolume = 0.8;
+
+            async function startConversation() {
+                try {
+                    // Initialize WebSocket connection
+                    ws = new WebSocket('ws://localhost:3001');
+                    
+                    ws.onopen = async function() {
+                        updateStatus('Connected - Initializing microphone...');
+                        await initializeMicrophone();
+                        
+                        document.getElementById('startBtn').disabled = true;
+                        document.getElementById('stopBtn').disabled = false;
+                        document.getElementById('muteBtn').disabled = false;
+                        
+                        updateStatus('Ready - Speak now!');
+                    };
+
+                    ws.onmessage = function(event) {
+                        const data = JSON.parse(event.data);
+                        handleMessage(data);
+                    };
+
+                    ws.onclose = function() {
+                        updateStatus('Connection closed');
+                        resetInterface();
+                    };
+
+                    ws.onerror = function(error) {
+                        console.error('WebSocket error:', error);
+                        updateStatus('Connection error');
+                        resetInterface();
+                    };
+
+                } catch (error) {
+                    console.error('Failed to start conversation:', error);
+                    updateStatus('Failed to start - Check microphone permissions');
+                }
+            }
+
+            async function initializeMicrophone() {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({
+                        audio: {
+                            sampleRate: 16000,
+                            channelCount: 1,
+                            echoCancellation: true,
+                            noiseSuppression: true
+                        }
+                    });
+
+                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    
+                    mediaRecorder = new MediaRecorder(stream, {
+                        mimeType: 'audio/webm;codecs=opus'
+                    });
+
+                    mediaRecorder.ondataavailable = function(event) {
+                        if (event.data.size > 0) {
+                            audioChunks.push(event.data);
+                        }
+                    };
+
+                    mediaRecorder.onstop = function() {
+                        if (audioChunks.length > 0) {
+                            const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                            processAudioBlob(audioBlob);
+                            audioChunks = [];
+                        }
+                    };
+
+                    startContinuousRecording();
+
+                } catch (error) {
+                    console.error('Microphone initialization failed:', error);
+                    throw error;
+                }
+            }
+
+            function startContinuousRecording() {
+                if (!mediaRecorder || ws.readyState !== WebSocket.OPEN) return;
+
+                audioChunks = [];
+                mediaRecorder.start();
+                isRecording = true;
+                
+                document.getElementById('status').classList.add('recording');
+                updateStatus('🎤 Listening...');
+
+                // Stop recording after 5 seconds and restart
+                setTimeout(() => {
+                    if (isRecording && mediaRecorder.state === 'recording') {
+                        mediaRecorder.stop();
+                        isRecording = false;
+                        document.getElementById('status').classList.remove('recording');
+                        
+                        // Restart recording after processing
+                        setTimeout(() => {
+                            if (ws && ws.readyState === WebSocket.OPEN) {
+                                startContinuousRecording();
+                            }
+                        }, 1000);
+                    }
+                }, 5000);
+            }
+
+            async function processAudioBlob(audioBlob) {
+                try {
+                    updateStatus('🔄 Processing audio...');
+                    document.getElementById('status').classList.add('processing');
+
+                    // Convert blob to base64
+                    const arrayBuffer = await audioBlob.arrayBuffer();
+                    const base64Audio = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+
+                    // Send to server via WebSocket
+                    if (ws && ws.readyState === WebSocket.OPEN) {
+                        ws.send(JSON.stringify({
+                            type: 'audio_input',
+                            audioData: base64Audio,
+                            timestamp: Date.now()
+                        }));
+                    }
+
+                } catch (error) {
+                    console.error('Audio processing failed:', error);
+                    updateStatus('Audio processing failed');
+                } finally {
+                    document.getElementById('status').classList.remove('processing');
+                }
+            }
+
+            async function handleMessage(data) {
+                switch (data.type) {
+                    case 'conversation_response':
+                        if (data.userInput) {
+                            addMessage('user', data.userInput);
+                        }
+                        addMessage('assistant', data.text);
+                        
+                        if (data.generateAudio && !isMuted) {
+                            await playTextToSpeech(data.text);
+                        }
+                        break;
+
+                    case 'greeting':
+                        addMessage('assistant', data.text);
+                        if (data.generateAudio && !isMuted) {
+                            await playTextToSpeech(data.text);
+                        }
+                        break;
+
+                    case 'status':
+                        updateStatus(data.message);
+                        break;
+
+                    case 'error':
+                        updateStatus('Error: ' + data.message);
+                        addMessage('system', '⚠️ ' + data.message);
+                        
+                        if (data.generateAudio && !isMuted) {
+                            await playTextToSpeech(data.message);
+                        }
+                        break;
+                }
+            }
+
+            async function playTextToSpeech(text) {
+                try {
+                    const response = await fetch('/api/speak', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ text: text })
+                    });
+
+                    if (response.ok) {
+                        const audioBuffer = await response.arrayBuffer();
+                        const audioBlob = new Blob([audioBuffer], { type: 'audio/mpeg' });
+                        const audioUrl = URL.createObjectURL(audioBlob);
+                        
+                        const audio = new Audio(audioUrl);
+                        audio.volume = currentVolume;
+                        
+                        audio.onplay = () => updateStatus('🔊 AI speaking...');
+                        audio.onended = () => {
+                            updateStatus('🎤 Listening...');
+                            URL.revokeObjectURL(audioUrl);
+                        };
+                        
+                        await audio.play();
+                    }
+                } catch (error) {
+                    console.error('TTS playback failed:', error);
+                }
+            }
+
+            function stopConversation() {
+                if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                    mediaRecorder.stop();
+                    mediaRecorder.stream.getTracks().forEach(track => track.stop());
+                }
+                
+                if (ws) {
+                    ws.close();
+                }
+                
+                if (audioContext) {
+                    audioContext.close();
+                }
+                
+                isRecording = false;
+                resetInterface();
+                updateStatus('Conversation ended');
+            }
+
+            function resetInterface() {
+                document.getElementById('startBtn').disabled = false;
+                document.getElementById('stopBtn').disabled = true;
+                document.getElementById('muteBtn').disabled = true;
+                document.getElementById('status').classList.remove('recording', 'processing');
+                
+                // Reset mute button text
+                document.getElementById('muteBtn').innerHTML = '🔊 Audio On';
+                isMuted = false;
+            }
+
+            function toggleMute() {
+                isMuted = !isMuted;
+                const muteBtn = document.getElementById('muteBtn');
+                muteBtn.innerHTML = isMuted ? '🔇 Audio Off' : '🔊 Audio On';
+                
+                if (isMuted) {
+                    // Stop any currently playing audio
+                    const audioElements = document.querySelectorAll('audio');
+                    audioElements.forEach(audio => {
+                        audio.pause();
+                        audio.currentTime = 0;
+                    });
+                }
+            }
+
+            function setVolume(volume) {
+                currentVolume = parseFloat(volume);
+            }
+
+            function addMessage(sender, text) {
+                const conversation = document.getElementById('conversation');
+                const messageDiv = document.createElement('div');
+                messageDiv.className = \`message \${sender}\`;
+                messageDiv.textContent = text;
+                
+                conversation.appendChild(messageDiv);
+                conversation.scrollTop = conversation.scrollHeight;
+                
+                // Remove old messages if too many
+                const messages = conversation.querySelectorAll('.message:not(.system)');
+                if (messages.length > 50) {
+                    messages[0].remove();
+                }
+            }
+
+            function updateStatus(message) {
+                document.getElementById('status').textContent = message;
+            }
+
+            // Initialize volume slider
+            document.getElementById('volumeSlider').addEventListener('input', function(e) {
+                setVolume(e.target.value);
+            });
+
+            // Handle page unload
+            window.addEventListener('beforeunload', function() {
+                if (ws) {
+                    ws.close();
+                }
+                if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                    mediaRecorder.stop();
+                }
+            });
+        </script>
+    </body>
+    </html>
+    `;
+  }
