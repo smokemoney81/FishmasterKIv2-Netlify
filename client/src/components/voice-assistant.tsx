@@ -17,6 +17,7 @@ export default function VoiceAssistant({ isOpen, onClose }: VoiceAssistantProps)
   const [isMuted, setIsMuted] = useState(false);
   const [recordedAudio, setRecordedAudio] = useState<Blob | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isReady, setIsReady] = useState(true); // Bereit für Interaktion
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
 
@@ -32,6 +33,8 @@ export default function VoiceAssistant({ isOpen, onClose }: VoiceAssistantProps)
   });
 
   const startRecording = async () => {
+    if (!isReady) return;
+    
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       mediaRecorderRef.current = new MediaRecorder(stream);
@@ -49,6 +52,7 @@ export default function VoiceAssistant({ isOpen, onClose }: VoiceAssistantProps)
 
       mediaRecorderRef.current.start();
       setIsRecording(true);
+      setIsReady(false);
       
       toast({
         title: "Aufnahme gestartet",
@@ -82,10 +86,11 @@ export default function VoiceAssistant({ isOpen, onClose }: VoiceAssistantProps)
     }
     setRecordedAudio(null);
     audioChunksRef.current = [];
+    setIsReady(true); // Zurück zum bereit-Zustand
     
     toast({
       title: "Aufnahme abgebrochen",
-      description: "Versuchen Sie es erneut.",
+      description: "Bereit für neue Aufnahme.",
     });
   };
 
@@ -142,8 +147,10 @@ export default function VoiceAssistant({ isOpen, onClose }: VoiceAssistantProps)
       
       // Nach der Antwort zurücksetzen
       setTimeout(() => {
-        handleClose();
-      }, 2000);
+        setRecordedAudio(null);
+        setIsReady(true);
+        setIsProcessing(false);
+      }, 3000);
       
     } catch (error) {
       toast({
@@ -162,6 +169,7 @@ export default function VoiceAssistant({ isOpen, onClose }: VoiceAssistantProps)
     }
     setRecordedAudio(null);
     setIsProcessing(false);
+    setIsReady(true); // Zurück zum Ausgangszustand
     onClose();
   };
 
@@ -205,12 +213,13 @@ export default function VoiceAssistant({ isOpen, onClose }: VoiceAssistantProps)
               </div>
             )}
             
-            {!isRecording && !recordedAudio && (
+            {!isRecording && !recordedAudio && isReady && (
               <div>
                 <div className="w-20 h-20 bg-cyan-500 rounded-full mx-auto mb-4 flex items-center justify-center">
                   <Mic className="w-8 h-8 text-white" />
                 </div>
-                <p className="text-cyan-400 font-medium">Bereit für Sprachaufnahme</p>
+                <p className="text-cyan-400 font-medium">Bereit - Drücken Sie "Aufnahme"</p>
+                <p className="text-gray-500 text-sm mt-2">Klicken Sie auf Aufnahme um zu starten</p>
               </div>
             )}
           </div>
