@@ -162,20 +162,20 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Lernen & Community */}
+        {/* Spiele & Community */}
         <section className="mb-6">
           <h2 className="text-lg font-bold text-cyan-300 mb-3 flex items-center">
-            <span className="mr-2">📚</span> Lernen & Community
+            <span className="mr-2">🎮</span> Spiele & Community
           </h2>
           <div className="grid grid-cols-3 gap-3">
             <Button
               variant="outline"
               className="h-20 border-cyan-500/30 hover:border-cyan-400 bg-slate-800/50 flex flex-col items-center justify-center"
-              onClick={() => setLocation("/tips")}
+              onClick={() => setLocation("/minigame")}
             >
-              <Lightbulb className="w-6 h-6 mb-1 text-yellow-400" />
-              <span className="text-xs font-medium text-gray-200">Tipps</span>
-              <span className="text-xs text-gray-400">Ratgeber</span>
+              <Fish className="w-6 h-6 mb-1 text-cyan-400" />
+              <span className="text-xs font-medium text-gray-200">Minispiel</span>
+              <span className="text-xs text-gray-400">Angel-Game</span>
             </Button>
             
             <Button
@@ -206,6 +206,39 @@ export default function Home() {
               <User className="w-6 h-6 mb-1 text-cyan-400" />
               <span className="text-xs font-medium text-gray-200">Community</span>
               <span className="text-xs text-gray-400">Angler</span>
+            </Button>
+          </div>
+        </section>
+
+        {/* Lernen & Tipps */}
+        <section className="mb-6">
+          <h2 className="text-lg font-bold text-cyan-300 mb-3 flex items-center">
+            <span className="mr-2">📚</span> Lernen & Tipps
+          </h2>
+          <div className="grid grid-cols-2 gap-3">
+            <Button
+              variant="outline"
+              className="h-20 border-cyan-500/30 hover:border-cyan-400 bg-slate-800/50 flex flex-col items-center justify-center"
+              onClick={() => setLocation("/tips")}
+            >
+              <Lightbulb className="w-6 h-6 mb-1 text-yellow-400" />
+              <span className="text-xs font-medium text-gray-200">Tipps</span>
+              <span className="text-xs text-gray-400">Ratgeber</span>
+            </Button>
+            
+            <Button
+              variant="outline"
+              className="h-20 border-cyan-500/30 hover:border-cyan-400 bg-slate-800/50 flex flex-col items-center justify-center"
+              onClick={() => {
+                toast({
+                  title: "Lexikon",
+                  description: "Angel-Lexikon wird geladen..."
+                });
+              }}
+            >
+              <BookOpen className="w-6 h-6 mb-1 text-cyan-400" />
+              <span className="text-xs font-medium text-gray-200">Lexikon</span>
+              <span className="text-xs text-gray-400">Wissen</span>
             </Button>
           </div>
         </section>

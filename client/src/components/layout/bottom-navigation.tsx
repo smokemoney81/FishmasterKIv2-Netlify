@@ -30,7 +30,7 @@ export default function BottomNavigation() {
               isActive("/home") ? "text-cyan-400" : "text-gray-400 hover:text-cyan-400"
             )}>
               <img src={homeIcon} className="w-5 h-5 object-contain" alt={t("nav.home")} />
-              <span className="text-xs font-medium">{t("nav.home")}</span>
+              <span className="text-xs font-medium">Home</span>
             </button>
           </Link>
           
@@ -52,13 +52,13 @@ export default function BottomNavigation() {
             <span className="text-xs font-medium">Angeln</span>
           </button>
           
-          <Link href="/species">
+          <Link href="/minigame">
             <button className={cn(
               "flex flex-col items-center space-y-1 transition-colors",
-              isActive("/species") ? "text-cyan-400" : "text-gray-400 hover:text-cyan-400"
+              isActive("/minigame") ? "text-cyan-400" : "text-gray-400 hover:text-cyan-400"
             )}>
-              <span className="text-xl">🐟</span>
-              <span className="text-xs font-medium">Fische</span>
+              <span className="text-xl">🎮</span>
+              <span className="text-xs font-medium">Spiel</span>
             </button>
           </Link>
           

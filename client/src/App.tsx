@@ -14,6 +14,7 @@ import Species from "@/pages/species";
 import Tips from "@/pages/tips";
 import Profile from "@/pages/profile";
 import Logbook from "@/pages/logbook";
+import Minigame from "@/pages/minigame";
 import BottomNavigation from "@/components/layout/bottom-navigation";
 
 function Router() {
@@ -59,6 +60,12 @@ function Router() {
       <Route path="/profile">
         <div className="min-h-screen bg-gradient-to-b from-slate-900 via-blue-900 to-slate-900">
           <Profile />
+          <BottomNavigation />
+        </div>
+      </Route>
+      <Route path="/minigame">
+        <div className="min-h-screen bg-gradient-to-b from-slate-900 via-blue-900 to-slate-900">
+          <Minigame />
           <BottomNavigation />
         </div>
       </Route>
