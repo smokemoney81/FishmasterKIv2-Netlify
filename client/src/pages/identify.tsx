@@ -163,15 +163,117 @@ export default function Identify() {
         </div>
       </section>
 
+      {/* Analysis Results */}
+      {isAnalyzing && (
+        <section className="px-4 py-6">
+          <Card className="p-6 text-center bg-gray-900/30 backdrop-blur-sm border border-cyan-500/20">
+            <div className="animate-spin w-8 h-8 border-2 border-cyan-400 border-t-transparent rounded-full mx-auto mb-3"></div>
+            <p className="text-gray-300">KI analysiert Ihr Bild...</p>
+            <p className="text-sm text-gray-400">Das kann einen Moment dauern</p>
+          </Card>
+        </section>
+      )}
+
+      {/* Identification Results */}
+      {identificationResult && (
+        <section className="px-4 py-6">
+          <h3 className="text-lg font-semibold text-gray-100 mb-4">Identifikations-Ergebnisse</h3>
+          <div className="space-y-3">
+            {identificationResult.map((result: any, index: number) => (
+              <Card key={index} className={`p-4 border ${
+                index === 0 ? 'border-green-500/50 bg-green-500/10' : 'border-cyan-500/20 bg-gray-900/30'
+              } backdrop-blur-sm`}>
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center space-x-2">
+                      <h4 className="font-semibold text-gray-100">{result.name}</h4>
+                      {index === 0 && <CheckCircle className="w-4 h-4 text-green-400" />}
+                    </div>
+                    <p className="text-sm text-gray-300">{result.habitat}</p>
+                  </div>
+                  <div className="text-right">
+                    <div className={`text-lg font-bold ${
+                      result.confidence > 0.8 ? 'text-green-400' : 
+                      result.confidence > 0.6 ? 'text-yellow-400' : 'text-gray-400'
+                    }`}>
+                      {Math.round(result.confidence * 100)}%
+                    </div>
+                    <p className="text-xs text-gray-400">Übereinstimmung</p>
+                  </div>
+                </div>
+              </Card>
+            ))}
+          </div>
+          
+          <div className="mt-4 space-y-2">
+            <Button 
+              className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700"
+              onClick={() => {
+                toast({
+                  title: "Ergebnis gespeichert!",
+                  description: "Die Identifikation wurde zu Ihrem Logbuch hinzugefügt."
+                });
+              }}
+            >
+              <CheckCircle className="w-4 h-4 mr-2" />
+              Ergebnis speichern
+            </Button>
+            <Button 
+              variant="outline" 
+              className="w-full border-cyan-500/30 text-cyan-300 hover:bg-cyan-500/10"
+              onClick={() => {
+                setSelectedImage(null);
+                setIdentificationResult(null);
+              }}
+            >
+              Neue Identifikation starten
+            </Button>
+          </div>
+        </section>
+      )}
+
+      {/* Image Preview Modal */}
+      <Dialog open={!!selectedImage} onOpenChange={() => setSelectedImage(null)}>
+        <DialogContent className="max-w-md bg-gray-900 border-cyan-500/20">
+          <DialogHeader>
+            <DialogTitle className="text-xl text-gray-100">Bild-Vorschau</DialogTitle>
+          </DialogHeader>
+          {selectedImage && (
+            <div className="space-y-4">
+              <div className="relative rounded-lg overflow-hidden">
+                <img 
+                  src={selectedImage}
+                  alt="Uploaded fish"
+                  className="w-full h-64 object-cover"
+                />
+              </div>
+              {isAnalyzing ? (
+                <div className="text-center py-4">
+                  <div className="animate-spin w-6 h-6 border-2 border-cyan-400 border-t-transparent rounded-full mx-auto mb-2"></div>
+                  <p className="text-gray-300">Analysiere...</p>
+                </div>
+              ) : identificationResult ? (
+                <div className="text-center py-4">
+                  <CheckCircle className="w-8 h-8 text-green-400 mx-auto mb-2" />
+                  <p className="text-gray-300">Identifikation abgeschlossen!</p>
+                </div>
+              ) : null}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
       {/* Recent Identifications */}
-      <section className="px-4 py-6">
-        <h3 className="text-lg font-semibold text-slate-800 mb-4">Recent Identifications</h3>
-        <Card className="p-6 text-center">
-          <div className="text-slate-400 mb-2">🔍</div>
-          <p className="text-slate-500">No recent identifications</p>
-          <p className="text-sm text-slate-400">Start by taking your first fish photo!</p>
-        </Card>
-      </section>
+      {!identificationResult && !isAnalyzing && (
+        <section className="px-4 py-6">
+          <h3 className="text-lg font-semibold text-gray-100 mb-4">Letzte Identifikationen</h3>
+          <Card className="p-6 text-center bg-gray-900/30 backdrop-blur-sm border border-cyan-500/20">
+            <div className="text-gray-400 mb-2">🔍</div>
+            <p className="text-gray-300">Keine letzten Identifikationen</p>
+            <p className="text-sm text-gray-400">Beginnen Sie mit Ihrem ersten Fischfoto!</p>
+          </Card>
+        </section>
+      )}
 
       {/* Spacer for bottom navigation */}
       <div className="h-20"></div>
