@@ -80,7 +80,6 @@ function App() {
         <TooltipProvider>
           <Toaster />
           <Router />
-          <FloatingSigiChat />
         </TooltipProvider>
       </LanguageProvider>
     </QueryClientProvider>

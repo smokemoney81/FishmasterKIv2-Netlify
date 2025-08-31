@@ -13,7 +13,7 @@ export default function Tips() {
   if (isLoading) {
     return (
       <>
-        <MobileHeader title="Fishing Tips" />
+        <MobileHeader title="Angel-Tipps & Tricks" />
         <div className="p-4">
           <div className="animate-pulse space-y-4">
             {[1, 2, 3].map((i) => (
@@ -34,7 +34,7 @@ export default function Tips() {
         <section className="px-4 py-6">
           <div className="flex items-center space-x-2 mb-4">
             <Lightbulb className="w-5 h-5 text-amber-500" />
-            <h3 className="text-lg font-semibold text-gray-100">Today's Featured Tip</h3>
+            <h3 className="text-lg font-semibold text-gray-100">Tipp des Tages</h3>
           </div>
           
           <Card className="bg-gradient-to-r from-gray-900/60 to-blue-900/60 backdrop-blur-sm border border-cyan-500/30 overflow-hidden">
@@ -80,14 +80,14 @@ export default function Tips() {
 
       {/* Categories */}
       <section className="px-4 py-2">
-        <h3 className="text-lg font-semibold text-gray-100 mb-4">Browse by Category</h3>
+        <h3 className="text-lg font-semibold text-gray-100 mb-4">Nach Kategorie durchsuchen</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           <Card className="p-4 text-center hover:shadow-md transition-shadow cursor-pointer bg-gray-900/30 backdrop-blur-sm border border-cyan-500/20">
             <div className="w-12 h-12 bg-cyan-500/20 rounded-full mx-auto mb-2 flex items-center justify-center">
               <span className="text-2xl">🎣</span>
             </div>
-            <h4 className="font-medium text-gray-100">Techniques</h4>
-            <p className="text-xs text-gray-400">Fishing methods & strategies</p>
+            <h4 className="font-medium text-gray-100">Techniken</h4>
+            <p className="text-xs text-gray-400">Angel-Methoden & Strategien</p>
           </Card>
           
           <Card className="p-4 text-center hover:shadow-md transition-shadow cursor-pointer bg-gray-900/30 backdrop-blur-sm border border-cyan-500/20">
@@ -103,22 +103,22 @@ export default function Tips() {
               <span className="text-2xl">⏰</span>
             </div>
             <h4 className="font-medium text-gray-100">Timing</h4>
-            <p className="text-xs text-gray-400">Best times to fish</p>
+            <p className="text-xs text-gray-400">Beste Zeiten zum Angeln</p>
           </Card>
           
           <Card className="p-4 text-center hover:shadow-md transition-shadow cursor-pointer bg-gray-900/30 backdrop-blur-sm border border-cyan-500/20">
             <div className="w-12 h-12 bg-cyan-500/20 rounded-full mx-auto mb-2 flex items-center justify-center">
               <span className="text-2xl">📍</span>
             </div>
-            <h4 className="font-medium text-gray-100">Locations</h4>
-            <p className="text-xs text-gray-400">Where to find fish</p>
+            <h4 className="font-medium text-gray-100">Angelplätze</h4>
+            <p className="text-xs text-gray-400">Wo man Fische findet</p>
           </Card>
         </div>
       </section>
 
       {/* Popular Tips */}
       <section className="px-4 py-6">
-        <h3 className="text-lg font-semibold text-gray-100 mb-4">Popular Tips</h3>
+        <h3 className="text-lg font-semibold text-gray-100 mb-4">Beliebte Tipps</h3>
         <div className="space-y-4">
           {/* Nur relevante Popular Tips */}
           <Card className="p-4 bg-gray-900/30 backdrop-blur-sm border border-cyan-500/20">
@@ -127,11 +127,11 @@ export default function Tips() {
                 <span className="text-cyan-400 text-sm">🌅</span>
               </div>
               <div className="flex-1">
-                <h4 className="font-medium text-gray-100 mb-1">Best Times for Fishing</h4>
-                <p className="text-sm text-gray-300 mb-2">Dawn and dusk are prime fishing times when fish are most active</p>
+                <h4 className="font-medium text-gray-100 mb-1">Beste Zeiten zum Angeln</h4>
+                <p className="text-sm text-gray-300 mb-2">Morgen- und Abenddämmerung sind optimale Angelzeiten, wenn Fische am aktivsten sind</p>
                 <div className="flex items-center space-x-2">
                   <Badge variant="outline" className="text-xs">Timing</Badge>
-                  <Badge variant="outline" className="text-xs">Beginner</Badge>
+                  <Badge variant="outline" className="text-xs">Anfänger</Badge>
                 </div>
               </div>
             </div>
@@ -143,11 +143,11 @@ export default function Tips() {
                 <span className="text-cyan-400 text-sm">🎯</span>
               </div>
               <div className="flex-1">
-                <h4 className="font-medium text-gray-100 mb-1">Reading Water Structure</h4>
-                <p className="text-sm text-gray-300 mb-2">Look for drop-offs, underwater structures, and vegetation where fish hide</p>
+                <h4 className="font-medium text-gray-100 mb-1">Gewässerstruktur lesen</h4>
+                <p className="text-sm text-gray-300 mb-2">Achten Sie auf Abbruchkanten, Unterwasserstrukturen und Vegetation, wo sich Fische verstecken</p>
                 <div className="flex items-center space-x-2">
-                  <Badge variant="outline" className="text-xs">Technique</Badge>
-                  <Badge variant="outline" className="text-xs">Intermediate</Badge>
+                  <Badge variant="outline" className="text-xs">Technik</Badge>
+                  <Badge variant="outline" className="text-xs">Fortgeschritten</Badge>
                 </div>
               </div>
             </div>
