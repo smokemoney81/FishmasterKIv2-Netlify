@@ -4,6 +4,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { LanguageProvider } from "@/contexts/language-context";
+import FloatingSigiChat from "@/components/floating-sigi-chat";
 import NotFound from "@/pages/not-found";
 import Splash from "@/pages/splash";
 import Home from "@/pages/home";
@@ -13,7 +14,6 @@ import Species from "@/pages/species";
 import Tips from "@/pages/tips";
 import Profile from "@/pages/profile";
 import Logbook from "@/pages/logbook";
-import Sigi from "@/pages/sigi";
 import BottomNavigation from "@/components/layout/bottom-navigation";
 
 function Router() {
@@ -68,12 +68,6 @@ function Router() {
           <BottomNavigation />
         </div>
       </Route>
-      <Route path="/sigi">
-        <div className="min-h-screen bg-gray-900" style={{backgroundImage: 'url(/icons/background.jpg)', backgroundSize: 'cover', backgroundPosition: 'center', backgroundAttachment: 'fixed'}}>
-          <Sigi />
-          <BottomNavigation />
-        </div>
-      </Route>
       <Route component={NotFound} />
     </Switch>
   );
@@ -86,6 +80,7 @@ function App() {
         <TooltipProvider>
           <Toaster />
           <Router />
+          <FloatingSigiChat />
         </TooltipProvider>
       </LanguageProvider>
     </QueryClientProvider>
