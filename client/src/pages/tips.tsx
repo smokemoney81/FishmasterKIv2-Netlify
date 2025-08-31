@@ -81,7 +81,7 @@ export default function Tips() {
       {/* Categories */}
       <section className="px-4 py-2">
         <h3 className="text-lg font-semibold text-gray-100 mb-4">Browse by Category</h3>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           <Card className="p-4 text-center hover:shadow-md transition-shadow cursor-pointer bg-gray-900/30 backdrop-blur-sm border border-cyan-500/20">
             <div className="w-12 h-12 bg-cyan-500/20 rounded-full mx-auto mb-2 flex items-center justify-center">
               <span className="text-2xl">🎣</span>
@@ -90,13 +90,6 @@ export default function Tips() {
             <p className="text-xs text-gray-400">Fishing methods & strategies</p>
           </Card>
           
-          <Card className="p-4 text-center hover:shadow-md transition-shadow cursor-pointer bg-gray-900/30 backdrop-blur-sm border border-cyan-500/20">
-            <div className="w-12 h-12 bg-cyan-500/20 rounded-full mx-auto mb-2 flex items-center justify-center">
-              <span className="text-2xl">🛠️</span>
-            </div>
-            <h4 className="font-medium text-gray-100">Equipment</h4>
-            <p className="text-xs text-gray-400">Gear recommendations</p>
-          </Card>
           
           <Card className="p-4 text-center hover:shadow-md transition-shadow cursor-pointer bg-gray-900/30 backdrop-blur-sm border border-cyan-500/20">
             <div className="w-12 h-12 bg-cyan-500/20 rounded-full mx-auto mb-2 flex items-center justify-center">
