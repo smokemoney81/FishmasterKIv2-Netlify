@@ -5,7 +5,7 @@ import WeatherWidget from "@/components/weather-widget";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Camera, Plus, Lightbulb, MapPin } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import CatchLogModal from "@/components/catch-log-modal";
 import { useLocation } from "wouter";
 import type { FishingSpot, FishSpecies, Catch } from "@shared/schema";
@@ -20,6 +20,44 @@ export default function Home() {
   const [, setLocation] = useLocation();
   const [showCatchModal, setShowCatchModal] = useState(false);
   const { t } = useLanguage();
+  
+  // Zeit und Wetter State
+  const [time, setTime] = useState(new Date());
+  const [weather, setWeather] = useState("sunny"); // sunny, evening, rain
+
+  // Zeit aktualisieren
+  useEffect(() => {
+    const timer = setInterval(() => setTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  // Beispiel Wetter Logik (später API einbauen)
+  useEffect(() => {
+    const hour = time.getHours();
+    if (hour >= 18 && hour < 21) {
+      setWeather("evening");
+    } else if (hour >= 21 || hour < 6) {
+      setWeather("night");
+    } else {
+      setWeather("sunny");
+    }
+  }, [time]);
+
+  // Icon abhängig vom Wetter
+  const renderWeatherIcon = () => {
+    switch (weather) {
+      case "sunny":
+        return <span style={{ fontSize: "2rem" }}>🌞</span>;
+      case "evening":
+        return <span style={{ fontSize: "2rem" }}>🌇</span>;
+      case "night":
+        return <span style={{ fontSize: "2rem" }}>🌙</span>;
+      case "rain":
+        return <span style={{ fontSize: "2rem" }}>🌧️</span>;
+      default:
+        return <span style={{ fontSize: "2rem" }}>☁️</span>;
+    }
+  };
 
   const { data: spots = [] } = useQuery<FishingSpot[]>({
     queryKey: ["/api/spots"],
@@ -40,6 +78,19 @@ export default function Home() {
   return (
     <>
       <MobileHeader />
+      
+      {/* Zeit und Wetter Sektion */}
+      <section className="px-4 py-6">
+        <div className="bg-gray-900/40 backdrop-blur-sm border border-cyan-500/30 rounded-xl p-6 text-center">
+          <h2 className="text-3xl font-bold text-white mb-2">
+            {time.toLocaleTimeString("de-DE")}
+          </h2>
+          <div className="mb-4">{renderWeatherIcon()}</div>
+          <p className="text-cyan-300 text-sm">
+            Perfekte Zeit zum Angeln! 🎣
+          </p>
+        </div>
+      </section>
       
       <QuickStats />
       
