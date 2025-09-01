@@ -357,6 +357,6 @@ export default function Home() {
 
       {/* Spacer for bottom navigation */}
       <div className="h-20"></div>
-    </div>
+    </>
   );
 }
