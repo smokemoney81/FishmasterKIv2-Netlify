@@ -9,13 +9,18 @@ import CatchLogModal from "@/components/catch-log-modal";
 import VoiceAssistant from "@/components/voice-assistant";
 import { useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
+import { useLanguage } from "@/contexts/language-context";
+import FloatingSigiChat from "@/components/floating-sigi-chat";
+import TutorialModal from "@/components/tutorial-modal";
 
 export default function Home() {
   const [, setLocation] = useLocation();
   const [showCatchModal, setShowCatchModal] = useState(false);
   const [showVoiceAssistant, setShowVoiceAssistant] = useState(false);
   const { toast } = useToast();
-  
+  const { t } = useLanguage();
+  const [showTutorial, setShowTutorial] = useState(false);
+
   // Wetter-Daten abrufen
   const { data: weather } = useQuery({ 
     queryKey: ['/api/weather'], 
@@ -28,10 +33,10 @@ export default function Home() {
   return (
     <>
       <MobileHeader />
-      
+
       {/* Übersichtliche Funktions-Struktur */}
       <div className="px-4 py-4 overflow-y-auto pb-20">
-        
+
         {/* Wetter-Info Bar */}
         <Card className="p-3 mb-4 bg-gradient-to-r from-blue-900/50 to-cyan-900/50 border-cyan-500/30">
           <div className="flex items-center justify-between">
@@ -64,7 +69,7 @@ export default function Home() {
               <span className="text-sm font-semibold">Fang erfassen</span>
               <span className="text-xs opacity-90">Neuen Fang loggen</span>
             </Button>
-            
+
             <Button
               className="h-24 bg-gradient-to-br from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 flex flex-col items-center justify-center"
               onClick={() => setShowVoiceAssistant(true)}
@@ -91,7 +96,7 @@ export default function Home() {
               <span className="text-xs font-medium text-gray-200">Karte</span>
               <span className="text-xs text-gray-400">Angelplätze</span>
             </Button>
-            
+
             <Button
               variant="outline"
               className="h-20 border-cyan-500/30 hover:border-cyan-400 bg-slate-800/50 flex flex-col items-center justify-center"
@@ -101,7 +106,7 @@ export default function Home() {
               <span className="text-xs font-medium text-gray-200">Fischarten</span>
               <span className="text-xs text-gray-400">Datenbank</span>
             </Button>
-            
+
             <Button
               variant="outline"
               className="h-20 border-cyan-500/30 hover:border-cyan-400 bg-slate-800/50 flex flex-col items-center justify-center"
@@ -129,7 +134,7 @@ export default function Home() {
               <span className="text-xs font-medium text-gray-200">Identifikation</span>
               <span className="text-xs text-gray-400">Fisch-KI</span>
             </Button>
-            
+
             <Button
               variant="outline"
               className="h-20 border-cyan-500/30 hover:border-cyan-400 bg-slate-800/50 flex flex-col items-center justify-center"
@@ -144,7 +149,7 @@ export default function Home() {
               <span className="text-xs font-medium text-gray-200">Wetter</span>
               <span className="text-xs text-gray-400">Prognose</span>
             </Button>
-            
+
             <Button
               variant="outline"
               className="h-20 border-cyan-500/30 hover:border-cyan-400 bg-slate-800/50 flex flex-col items-center justify-center"
@@ -177,7 +182,7 @@ export default function Home() {
               <span className="text-xs font-medium text-gray-200">Minispiel</span>
               <span className="text-xs text-gray-400">Angel-Game</span>
             </Button>
-            
+
             <Button
               variant="outline"
               className="h-20 border-cyan-500/30 hover:border-cyan-400 bg-slate-800/50 flex flex-col items-center justify-center"
@@ -192,7 +197,7 @@ export default function Home() {
               <span className="text-xs font-medium text-gray-200">Turniere</span>
               <span className="text-xs text-gray-400">Events</span>
             </Button>
-            
+
             <Button
               variant="outline"
               className="h-20 border-cyan-500/30 hover:border-cyan-400 bg-slate-800/50 flex flex-col items-center justify-center"
@@ -225,7 +230,7 @@ export default function Home() {
               <span className="text-xs font-medium text-gray-200">Tipps</span>
               <span className="text-xs text-gray-400">Ratgeber</span>
             </Button>
-            
+
             <Button
               variant="outline"
               className="h-20 border-cyan-500/30 hover:border-cyan-400 bg-slate-800/50 flex flex-col items-center justify-center"
@@ -264,7 +269,7 @@ export default function Home() {
               <span className="text-xs font-medium text-gray-200">Equipment</span>
               <span className="text-xs text-gray-400">Planer</span>
             </Button>
-            
+
             <Button
               variant="outline"
               className="h-20 border-cyan-500/30 hover:border-cyan-400 bg-slate-800/50 flex flex-col items-center justify-center"
@@ -279,7 +284,7 @@ export default function Home() {
               <span className="text-xs font-medium text-gray-200">Kalender</span>
               <span className="text-xs text-gray-400">Planung</span>
             </Button>
-            
+
             <Button
               variant="outline"
               className="h-20 border-cyan-500/30 hover:border-cyan-400 bg-slate-800/50 flex flex-col items-center justify-center"
@@ -288,6 +293,24 @@ export default function Home() {
               <Settings className="w-6 h-6 mb-1 text-gray-400" />
               <span className="text-xs font-medium text-gray-200">Profil</span>
               <span className="text-xs text-gray-400">Settings</span>
+            </Button>
+          </div>
+        </section>
+
+        {/* Tutorial Button */}
+        <section className="mb-6">
+          <h2 className="text-lg font-bold text-cyan-300 mb-3 flex items-center">
+            <span className="mr-2">💡</span> Tutorial
+          </h2>
+          <div className="grid grid-cols-1 gap-3">
+            <Button
+              variant="outline"
+              className="h-20 border-cyan-500/30 hover:border-cyan-400 bg-slate-800/50 flex flex-col items-center justify-center"
+              onClick={() => setShowTutorial(true)}
+            >
+              <HelpCircle className="w-6 h-6 mb-1 text-blue-400" />
+              <span className="text-xs font-medium text-gray-200">Start Tutorial</span>
+              <span className="text-xs text-gray-400">App kennenlernen</span>
             </Button>
           </div>
         </section>
@@ -321,11 +344,19 @@ export default function Home() {
         isOpen={showCatchModal} 
         onClose={() => setShowCatchModal(false)} 
       />
-      
+
       <VoiceAssistant
         isOpen={showVoiceAssistant}
         onClose={() => setShowVoiceAssistant(false)}
       />
-    </>
+
+      <TutorialModal 
+        isOpen={showTutorial} 
+        onClose={() => setShowTutorial(false)} 
+      />
+
+      {/* Spacer for bottom navigation */}
+      <div className="h-20"></div>
+    </div>
   );
 }

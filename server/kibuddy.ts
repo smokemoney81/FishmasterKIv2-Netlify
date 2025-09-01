@@ -25,7 +25,7 @@ class SigiAIBuddy {
 
   async generateResponse(userMessage: string, context: any = {}) {
     const systemPrompt = this.buildSystemPrompt(context);
-    
+
     try {
       const response = await fetch(this.baseUrl, {
         method: 'POST',
@@ -46,7 +46,7 @@ class SigiAIBuddy {
 
       const data = await response.json();
       return this.formatResponse(data.choices[0].message.content);
-      
+
     } catch (error) {
       return this.getFallbackResponse(userMessage);
     }
@@ -98,18 +98,18 @@ SPEZIAL-FUNKTIONEN:
 
   getFallbackResponse(userMessage: string) {
     const message = userMessage.toLowerCase();
-    
+
     const responses: Record<string, string> = {
-      tutorial: '📚 Gerne führe ich Sie durch FishMasterKI! Wir starten mit dem Dashboard, dann Fänge, Angelplätze, Ausrüstung und Community. Bereit für die Tour?',
-      
+      'tutorial': '🎯 Perfekt! Das interaktive Tutorial finden Sie auf der Startseite unter "Werkzeuge" → "Tutorial". Es führt Sie durch alle App-Bereiche: Fisch-Identifikation, Karte, Logbuch, Equipment-Planer und meine Chat-Funktion. Alternativ erkläre ich Ihnen gerne spezifische Bereiche!',
+
       zander: '🎣 Zander-Experten-Setup: 2,70-3,00m Spinnrute mit 15-45g Wurfgewicht, 3000-4000er Stationärrolle, 0,12mm geflochtene Schnur. Köder: Gummifische 8-12cm in Motoroil oder Natural. Beste Zeit: Eine Stunde vor bis zwei Stunden nach Sonnenuntergang!',
-      
+
       barsch: '🐟 Barsch-Profi-Setup: 2,40m ultraleichte Rute mit 5-25g Wurfgewicht, 2500er Rolle, 0,08-0,10mm dünne Schnur. Köder: Kleine Gummifische 5-8cm in bunten Farben, Spinner Größe 1-3. Barsche lieben aktive Köderführung!',
-      
+
       hecht: '🦈 Hecht-Meister-Setup: 2,70-3,30m schwere Rute mit 20-80g Wurfgewicht, 4000er Rolle mit starker Bremse, 0,15-0,20mm Schnur. Wichtig: 30-40cm Stahlvorfach! Köder: Große Wobbler 10-15cm oder Gummifische 12-20cm.',
-      
+
       wetter: '🌤️ Wetter ist entscheidend für den Angelerfolg! Wählen Sie einen Angelplatz aus der Liste und klicken Sie "Trip planen" - ich analysiere sofort die aktuellen Bedingungen und gebe passende Empfehlungen für Köder und Taktik.',
-      
+
       ausrüstung: '🎯 Für welchen Zielfisch planen Sie? Zander, Barsch oder Hecht? Je nach Fisch empfehle ich die optimale Ruten-Rollen-Kombination und passende Köder. Auch Ihr Budget kann ich berücksichtigen!'
     };
 
@@ -129,25 +129,25 @@ router.post("/kibuddy", async (req, res) => {
 
   try {
     const sigiAI = new SigiAIBuddy(process.env.OPENAI_API_KEY || '');
-    
+
     // Sammle Kontext-Daten aus der Datenbank
     const enhancedContext = await buildEnhancedContext(context);
-    
+
     const response = await sigiAI.generateResponse(message, enhancedContext);
-    
+
     res.json({ 
       reply: response,
       buddy: 'Sigi',
       personality: 'expert_friendly'
     });
-    
+
   } catch (error) {
     console.error('Sigi AI Error:', error);
-    
+
     // Fallback-Antwort
     const sigiAI = new SigiAIBuddy('');
     const fallbackResponse = sigiAI.getFallbackResponse(message);
-    
+
     res.json({ 
       reply: fallbackResponse,
       buddy: 'Sigi',
@@ -163,7 +163,7 @@ async function buildEnhancedContext(baseContext: any = {}) {
     const species = await storage.getFishSpecies();
     const spots = await storage.getFishingSpots();
     const weather = await storage.getWeatherByLocation(47.6062, 13.0100); // Fallback-Koordinaten
-    
+
     return {
       userStats: {
         totalCatches: catches.length,
