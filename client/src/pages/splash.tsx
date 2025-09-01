@@ -3,10 +3,14 @@ import { Button } from "@/components/ui/button";
 import fishingBackground from "@assets/grok_image_kec1rq_1756607643897.jpg";
 import { useLanguage } from "@/contexts/language-context";
 import LanguageSwitcher from "@/components/language-switcher";
+import TutorialModal from "@/components/tutorial-modal";
+import { useState } from "react";
+import { HelpCircle } from "lucide-react";
 
 export default function SplashPage() {
   const [, setLocation] = useLocation();
   const { t } = useLanguage();
+  const [showTutorial, setShowTutorial] = useState(false);
 
   return (
     <div className="min-h-screen relative flex flex-col items-center justify-center overflow-hidden">
@@ -24,6 +28,19 @@ export default function SplashPage() {
       {/* Language Switcher */}
       <div className="absolute top-4 right-4 z-20">
         <LanguageSwitcher />
+      </div>
+
+      {/* Tutorial Button */}
+      <div className="absolute top-4 left-4 z-20">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setShowTutorial(true)}
+          className="border-cyan-500/30 bg-slate-800/50 text-cyan-300 hover:bg-cyan-500/10 hover:border-cyan-400"
+        >
+          <HelpCircle className="w-4 h-4 mr-2" />
+          Tutorial
+        </Button>
       </div>
 
       {/* Main Splash Content */}
@@ -71,6 +88,11 @@ export default function SplashPage() {
           <div className="w-1 h-12 bg-gradient-to-b from-cyan-400 to-transparent rounded-full"></div>
         </div>
       </div>
+
+      <TutorialModal 
+        isOpen={showTutorial} 
+        onClose={() => setShowTutorial(false)} 
+      />
     </div>
   );
 }
