@@ -14,14 +14,14 @@ const translations = {
     "splash.subtitle": "KÜNSTLICHE INTELLIGENZ",
     "splash.title": "FishMasterKI",
     "splash.startButton": "JETZT ANGELN STARTEN",
-    
+
     // Navigation
     "nav.home": "Start",
     "nav.map": "Karte",
     "nav.log": "Fang",
     "nav.species": "Fangbuch",
     "nav.profile": "Profil",
-    
+
     // Home Page
     "home.welcome": "Willkommen zurück, Angler!",
     "home.ready": "Bereit für Ihr nächstes Angelabenteuer?",
@@ -36,31 +36,31 @@ const translations = {
     "home.communityCatches": "Community Fänge",
     "home.seeMore": "Mehr anzeigen",
     "home.noCatches": "Noch keine Fänge protokolliert. Seien Sie der Erste!",
-    
+
     // Quick Actions
     "quickActions.kiBuddy": "KI Buddy",
     "quickActions.map": "Karte",
     "quickActions.startFishing": "Start Fishing",
     "quickActions.weather": "Wetter",
-    
+
     // Weather Widget
     "weather.todaysForecast": "Heutige Angelvorhersage",
     "weather.fishingConditions": "Angelbedingungen",
-    
+
     // Species Page
     "species.title": "Fischarten-Guide",
     "species.search": "Nach Fischart suchen...",
     "species.difficulty.beginner": "Anfängerfreundlich",
     "species.difficulty.intermediate": "Mittel",
     "species.difficulty.expert": "Experte",
-    
+
     // Map Page
     "map.title": "Angelplätze",
     "map.search": "Platz suchen...",
     "map.fishingScore": "Angel-Score",
     "map.recentCatches": "Letzte Fänge",
     "map.availableFish": "Verfügbare Fische",
-    
+
     // Tips Page
     "tips.title": "Angel-Tipps & Tricks",
     "tips.search": "Nach Tipps suchen...",
@@ -69,7 +69,7 @@ const translations = {
     "tips.categories.bait": "Köder",
     "tips.categories.equipment": "Ausrüstung",
     "tips.categories.seasonal": "Saisonal",
-    
+
     // Profile Page
     "profile.title": "Mein Profil",
     "profile.statistics": "Statistiken",
@@ -77,7 +77,7 @@ const translations = {
     "profile.biggestCatch": "Größter Fang",
     "profile.favoriteSpot": "Lieblingsplatz",
     "profile.achievements": "Erfolge",
-    
+
     // Catch Modal
     "catch.logTitle": "Fang protokollieren",
     "catch.species": "Fischart",
@@ -90,13 +90,13 @@ const translations = {
     "catch.notes": "Notizen",
     "catch.cancel": "Abbrechen",
     "catch.save": "Speichern",
-    
+
     // Identify Page
     "identify.title": "Fisch identifizieren",
     "identify.uploadPrompt": "Laden Sie ein Foto hoch, um den Fisch zu identifizieren",
     "identify.analyzing": "Analysiere Bild...",
     "identify.result": "Identifizierter Fisch",
-    
+
     // Logbook Page
     "logbook.title": "FishMasterKI Fangbuch",
     "logbook.fishType": "Fischart (z.B. Hecht)",
@@ -118,20 +118,24 @@ const translations = {
     "logbook.spotLabel": "Spot",
     "logbook.gearLabel": "Gear",
     "logbook.noCatches": "Noch keine Fänge eingetragen",
+    
+    // Tutorial Page
+    tutorial: 'Tutorial',
+    login: 'Anmelden',
   },
   en: {
     // Splash Page
     "splash.subtitle": "ARTIFICIAL INTELLIGENCE",
     "splash.title": "FishMasterKI",
     "splash.startButton": "START FISHING NOW",
-    
+
     // Navigation
     "nav.home": "Home",
     "nav.map": "Map",
     "nav.log": "Log",
     "nav.species": "Species",
     "nav.profile": "Profile",
-    
+
     // Home Page
     "home.welcome": "Welcome back, Angler!",
     "home.ready": "Ready for your next fishing adventure?",
@@ -146,31 +150,31 @@ const translations = {
     "home.communityCatches": "Community Catches",
     "home.seeMore": "See More",
     "home.noCatches": "No catches logged yet. Be the first to share your catch!",
-    
+
     // Quick Actions
     "quickActions.kiBuddy": "AI Buddy",
     "quickActions.map": "Map",
     "quickActions.startFishing": "Start Fishing",
     "quickActions.weather": "Weather",
-    
+
     // Weather Widget
     "weather.todaysForecast": "Today's Fishing Forecast",
     "weather.fishingConditions": "Fishing Conditions",
-    
+
     // Species Page
     "species.title": "Fish Species Guide",
     "species.search": "Search fish species...",
     "species.difficulty.beginner": "Beginner Friendly",
     "species.difficulty.intermediate": "Intermediate",
     "species.difficulty.expert": "Expert",
-    
+
     // Map Page
     "map.title": "Fishing Spots",
     "map.search": "Search location...",
     "map.fishingScore": "Fishing Score",
     "map.recentCatches": "Recent Catches",
     "map.availableFish": "Available Fish",
-    
+
     // Tips Page
     "tips.title": "Fishing Tips & Tricks",
     "tips.search": "Search tips...",
@@ -179,7 +183,7 @@ const translations = {
     "tips.categories.bait": "Bait",
     "tips.categories.equipment": "Equipment",
     "tips.categories.seasonal": "Seasonal",
-    
+
     // Profile Page
     "profile.title": "My Profile",
     "profile.statistics": "Statistics",
@@ -187,7 +191,7 @@ const translations = {
     "profile.biggestCatch": "Biggest Catch",
     "profile.favoriteSpot": "Favorite Spot",
     "profile.achievements": "Achievements",
-    
+
     // Catch Modal
     "catch.logTitle": "Log Your Catch",
     "catch.species": "Fish Species",
@@ -200,13 +204,13 @@ const translations = {
     "catch.notes": "Notes",
     "catch.cancel": "Cancel",
     "catch.save": "Save",
-    
+
     // Identify Page
     "identify.title": "Identify Fish",
     "identify.uploadPrompt": "Upload a photo to identify the fish",
     "identify.analyzing": "Analyzing image...",
     "identify.result": "Identified Fish",
-    
+
     // Logbook Page
     "logbook.title": "FishMasterKI Logbook",
     "logbook.fishType": "Fish Type (e.g. Pike)",
@@ -228,6 +232,10 @@ const translations = {
     "logbook.spotLabel": "Spot",
     "logbook.gearLabel": "Gear",
     "logbook.noCatches": "No catches recorded yet",
+    
+    // Tutorial Page
+    tutorial: 'Tutorial',
+    login: 'Login',
   }
 };
 

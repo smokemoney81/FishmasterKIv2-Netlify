@@ -193,6 +193,39 @@ async function generateSpeechWithOpenAI(text: string): Promise<Buffer> {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Repl Auth middleware - extract user info from headers
+  app.use((req: any, res, next) => {
+    req.replitUser = {
+      id: req.headers['x-replit-user-id'],
+      name: req.headers['x-replit-user-name'],
+      profileImage: req.headers['x-replit-user-profile-image'],
+      bio: req.headers['x-replit-user-bio'],
+      url: req.headers['x-replit-user-url'],
+      roles: req.headers['x-replit-user-roles'],
+      teams: req.headers['x-replit-user-teams']
+    };
+    next();
+  });
+
+  // Get current authenticated user info
+  app.get("/api/auth/user", (req: any, res) => {
+    const user = req.replitUser;
+    if (user.id) {
+      res.json({
+        id: user.id,
+        name: user.name,
+        profileImage: user.profileImage,
+        bio: user.bio,
+        url: user.url,
+        roles: user.roles,
+        teams: user.teams,
+        isAuthenticated: true
+      });
+    } else {
+      res.json({ isAuthenticated: false });
+    }
+  });
+
   // Users
   app.get("/api/users/:id", async (req, res) => {
     try {

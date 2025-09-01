@@ -6,6 +6,7 @@ import LanguageSwitcher from "@/components/language-switcher";
 import TutorialModal from "@/components/tutorial-modal";
 import { useState } from "react";
 import { HelpCircle } from "lucide-react";
+import LoginButton from "@/components/login-button";
 
 export default function SplashPage() {
   const [, setLocation] = useLocation();
@@ -25,9 +26,23 @@ export default function SplashPage() {
         <div className="absolute inset-0 bg-black/40 backdrop-blur-[1px]"></div>
       </div>
       
-      {/* Language Switcher */}
-      <div className="absolute top-4 right-4 z-20">
-        <LanguageSwitcher />
+      {/* Top Navigation */}
+      <div className="absolute top-4 left-4 right-4 z-20 flex justify-between items-center">
+        <div className="flex items-center gap-2">
+          <Button
+            onClick={() => setShowTutorial(true)}
+            variant="outline"
+            size="sm"
+            className="bg-white/10 border-white/20 text-white hover:bg-white/20"
+          >
+            <HelpCircle className="h-4 w-4 mr-2" />
+            {t('tutorial')}
+          </Button>
+        </div>
+        <div className="flex items-center gap-2">
+          <LoginButton />
+          <LanguageSwitcher />
+        </div>
       </div>
 
       {/* Tutorial Button */}
