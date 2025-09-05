@@ -1,5 +1,0 @@
-run = "npm run start"
-language = "nodejs"
-
-[env]
-PORT = "3000"
